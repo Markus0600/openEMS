@@ -1,7 +1,8 @@
 package io.openems.edge.battery.sensatabms;
 
-import io.openems.common.utils.ConfigUtils;
 import io.openems.common.test.AbstractComponentConfig;
+import io.openems.common.utils.ConfigUtils;
+import io.openems.edge.common.startstop.StartStopConfig;
 
 @SuppressWarnings("all")
 public class MyConfig extends AbstractComponentConfig implements Config {
@@ -10,7 +11,15 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 		private String id;
 		private String modbusId = null;
 		private int modbusUnitId;
-
+		
+		private StartStopConfig startStop;
+		
+		private int chargeMaxVoltage;
+		private int disChargeMinVoltage;
+		private int innerResistance;
+		private int minCellTemperature;
+		private int maxCellTemperature;
+		
 		private Builder() {
 		}
 
@@ -26,6 +35,36 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 
 		public Builder setModbusUnitId(int modbusUnitId) {
 			this.modbusUnitId = modbusUnitId;
+			return this;
+		}
+
+		public Builder setStartStop(StartStopConfig startStop) {
+			this.startStop = startStop;
+			return this;
+		}
+
+		public Builder setChargeMaxVoltage(int chargeMaxVoltage) {
+			this.chargeMaxVoltage = chargeMaxVoltage;
+			return this;
+		}
+
+		public Builder setDisChargeMinVoltage(int disChargeMinVoltage) {
+			this.disChargeMinVoltage = disChargeMinVoltage;
+			return this;
+		}
+
+		public Builder setMinCellTemperature(int minCellTemperature) {
+			this.minCellTemperature = minCellTemperature;
+			return this;
+		}
+
+		public Builder setMaxCellTemperature(int maxCellTemperature) {
+			this.maxCellTemperature = maxCellTemperature;
+			return this;
+		}
+
+		public Builder setInnerResistance(int innerResistance) {
+			this.innerResistance = innerResistance;
 			return this;
 		}
 
@@ -65,4 +104,34 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 		return this.builder.modbusUnitId;
 	}
 
+	@Override
+	public StartStopConfig startStop() {
+		return this.builder.startStop;
+	}
+
+	@Override
+	public int disChargeMinVoltage() {
+		return this.builder.disChargeMinVoltage;
+	}
+
+	@Override
+	public int chargeMaxVoltage() {
+		return this.builder.chargeMaxVoltage;
+	}
+
+	@Override
+	public int innerResistance() {
+		return this.builder.innerResistance;
+	}
+
+	@Override
+	public int minCellTemperature() {
+		return this.builder.minCellTemperature;
+	}
+
+	@Override
+	public int maxCellTemperature() {
+		return this.builder.maxCellTemperature;
+	}
+	
 }
