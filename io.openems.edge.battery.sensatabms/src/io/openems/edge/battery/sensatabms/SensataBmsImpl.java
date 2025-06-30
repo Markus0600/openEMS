@@ -1,5 +1,8 @@
 package io.openems.edge.battery.sensatabms;
 
+import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_MINUS_2;
+import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_3;
+
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -23,6 +26,8 @@ import io.openems.edge.bridge.modbus.api.BridgeModbus;
 import io.openems.edge.bridge.modbus.api.ModbusComponent;
 import io.openems.edge.bridge.modbus.api.ModbusProtocol;
 import io.openems.edge.bridge.modbus.api.element.SignedWordElement;
+import io.openems.edge.bridge.modbus.api.element.FloatQuadruplewordElement;
+import io.openems.edge.bridge.modbus.api.element.FloatDoublewordElement;
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.IntegerWriteChannel;
@@ -142,47 +147,47 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	            new FC3ReadRegistersTask(
 	            		CAPACITY, 
 	                    Priority.LOW,
-	                    m(Battery.ChannelId.CAPACITY, new SignedWordElement(CAPACITY))
+	                    m(Battery.ChannelId.CAPACITY, new FloatQuadruplewordElement(CAPACITY))
 	                    ),
 	            new FC3ReadRegistersTask(
 	            		CHARGE_MAX_CURRENT, 
 	                    Priority.LOW,
-	                    m(Battery.ChannelId.CHARGE_MAX_CURRENT, new SignedWordElement(CHARGE_MAX_CURRENT))
+	                    m(Battery.ChannelId.CHARGE_MAX_CURRENT, new FloatQuadruplewordElement(CHARGE_MAX_CURRENT))
 	                    ),
 	            new FC3ReadRegistersTask(
 	            		DISCHARGE_MAX_CURRENT, 
 	                    Priority.LOW,
-	                    m(Battery.ChannelId.DISCHARGE_MAX_CURRENT, new SignedWordElement(DISCHARGE_MAX_CURRENT))
+	                    m(Battery.ChannelId.DISCHARGE_MAX_CURRENT, new FloatQuadruplewordElement(DISCHARGE_MAX_CURRENT))
 	                    ),
 	            new FC3ReadRegistersTask(
 	            		SOC, 
 	                    Priority.LOW,
-	                    m(Battery.ChannelId.SOC, new SignedWordElement(SOC))
+	                    m(Battery.ChannelId.SOC, new SignedWordElement(SOC), SCALE_FACTOR_MINUS_2)
 	                    ),
 	            new FC3ReadRegistersTask(
 	            		SOH, 
 	                    Priority.LOW,
-	                    m(Battery.ChannelId.SOH, new SignedWordElement(SOH))
+	                    m(Battery.ChannelId.SOH, new FloatDoublewordElement(SOH))
 	                    ),
 	            new FC3ReadRegistersTask(
 	            		CURRENT, 
 	                    Priority.LOW,
-	                    m(Battery.ChannelId.CURRENT, new SignedWordElement(CURRENT))
+	                    m(Battery.ChannelId.CURRENT, new FloatQuadruplewordElement(CURRENT))
 	                    ),
 	            new FC3ReadRegistersTask(
 	            		MIN_CELL_VOLTAGE, 
 	                    Priority.LOW,
-	                    m(Battery.ChannelId.MIN_CELL_VOLTAGE, new SignedWordElement(MIN_CELL_VOLTAGE))
+	                    m(Battery.ChannelId.MIN_CELL_VOLTAGE, new FloatQuadruplewordElement(MIN_CELL_VOLTAGE), SCALE_FACTOR_3)
 	                    ),
 	            new FC3ReadRegistersTask(
 	            		MAX_CELL_VOLTAGE, 
 	                    Priority.LOW,
-	                    m(Battery.ChannelId.MAX_CELL_VOLTAGE, new SignedWordElement(MAX_CELL_VOLTAGE))
+	                    m(Battery.ChannelId.MAX_CELL_VOLTAGE, new FloatQuadruplewordElement(MAX_CELL_VOLTAGE), SCALE_FACTOR_3)
 	                    ),
 	            new FC3ReadRegistersTask(
 	            		VOLTAGE, 
 	                    Priority.LOW,
-	                    m(Battery.ChannelId.VOLTAGE, new SignedWordElement(VOLTAGE))
+	                    m(Battery.ChannelId.VOLTAGE, new FloatQuadruplewordElement(VOLTAGE))
 	                    )
 				);
 	}
