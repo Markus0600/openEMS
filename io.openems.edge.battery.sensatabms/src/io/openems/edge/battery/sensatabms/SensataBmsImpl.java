@@ -90,36 +90,36 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		this.config = config;
 		
 		// Workaround: fill battery channel values which are currently not provided via Modbus with config values.
-//		IntegerWriteChannel channel = this.channel(Battery.ChannelId.CHARGE_MAX_VOLTAGE);
-//		try {
-//			channel.setNextWriteValue(config.chargeMaxVoltage());
-//		} catch (OpenemsNamedException e) {
-//			this.log.error(e.getMessage());
-//		}
-//		channel = this.channel(Battery.ChannelId.DISCHARGE_MIN_VOLTAGE);
-//		try {
-//			channel.setNextWriteValue(config.disChargeMinVoltage());
-//		} catch (OpenemsNamedException e) {
-//			this.log.error(e.getMessage());
-//		}
-//		channel = this.channel(Battery.ChannelId.INNER_RESISTANCE);
-//		try {
-//			channel.setNextWriteValue(config.innerResistance());
-//		} catch (OpenemsNamedException e) {
-//			this.log.error(e.getMessage());
-//		}
-//		channel = this.channel(Battery.ChannelId.MIN_CELL_TEMPERATURE);
-//		try {
-//			channel.setNextWriteValue(config.minCellTemperature());
-//		} catch (OpenemsNamedException e) {
-//			this.log.error(e.getMessage());
-//		}
-//		channel = this.channel(Battery.ChannelId.MAX_CELL_TEMPERATURE);
-//		try {
-//			channel.setNextWriteValue(config.maxCellTemperature());
-//		} catch (OpenemsNamedException e) {
-//			this.log.error(e.getMessage());
-//		}
+		IntegerWriteChannel channel = this.channel(Battery.ChannelId.CHARGE_MAX_VOLTAGE);
+		try {
+			channel.setNextWriteValue(config.chargeMaxVoltage());
+		} catch (OpenemsNamedException e) {
+			this.log.error(e.getMessage());
+		}
+		channel = this.channel(Battery.ChannelId.DISCHARGE_MIN_VOLTAGE);
+		try {
+			channel.setNextWriteValue(config.disChargeMinVoltage());
+		} catch (OpenemsNamedException e) {
+			this.log.error(e.getMessage());
+		}
+		channel = this.channel(Battery.ChannelId.INNER_RESISTANCE);
+		try {
+			channel.setNextWriteValue(config.innerResistance());
+		} catch (OpenemsNamedException e) {
+			this.log.error(e.getMessage());
+		}
+		channel = this.channel(Battery.ChannelId.MIN_CELL_TEMPERATURE);
+		try {
+			channel.setNextWriteValue(config.minCellTemperature());
+		} catch (OpenemsNamedException e) {
+			this.log.error(e.getMessage());
+		}
+		channel = this.channel(Battery.ChannelId.MAX_CELL_TEMPERATURE);
+		try {
+			channel.setNextWriteValue(config.maxCellTemperature());
+		} catch (OpenemsNamedException e) {
+			this.log.error(e.getMessage());
+		}
 		
 	}
 
@@ -212,4 +212,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				+ " " + this.channel(Battery.ChannelId.VOLTAGE).value().asString()
 				;
 	}
+	
+	
 }

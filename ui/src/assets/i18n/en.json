@@ -268,6 +268,14 @@
           "GRID_CHARGE_WARNING": "The storage system can actively recharge from the grid to maintain the set emergency power reserve in order to compensate for losses due to internal self-consumption in the event of a prolonged absence of generation. <br/><br/>ATTENTION: Actively charging the battery from grid beyond the technically necessary maintenance charging, requires an appropriate registration of the storage system. If in doubt, please verify with your installer. By pressing the blue \"Save\" button you confirm that this verification has been done.<br/><br/>Be aware: precondition for German \"Gesetz für den Ausbau erneuerbarer Energien (EEG)\" grant is, that only energy from renewable sources and/or pit gas is stored in the battery. By activating this function, the battery is charged with energy from grid. This energy is, depending on the individual power-supply contract, probably made from fossil sources and/or nuclear power plants. Because of this we can not guarantee, that the battery is only charged with energy from renewable sources and/or pit gas."
         }
       },
+      "SensataBms": {
+          "capacity": "Capacity",
+          "chargeMaxCurrent": "Charge max current",
+          "dischargeMaxCurrent": "Discharge max current",
+          "current": "Current",
+          "minCellVoltage": "Min cell voltage",
+          "maxCellVoltage": "Max cell voltage"
+      },
       "RETROFITTING": {
         "OPTIMAL": "Capacity expansion",
         "REFERENCING_OF_STORAGE": {

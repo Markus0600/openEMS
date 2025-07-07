@@ -170,7 +170,7 @@ public class DummyModbusBridge extends AbstractModbusBridge implements BridgeMod
 		}
 		return this;
 	}
-
+	
 	/**
 	 * Sets the values of FC4InputRegisters.
 	 * 

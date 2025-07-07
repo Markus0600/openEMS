@@ -152,7 +152,13 @@
                 class="ion-no-padding">
                 <Controller_Ess_GridOptimizedCharge [componentId]="widget.componentId">
                 </Controller_Ess_GridOptimizedCharge>
+
               </ion-col>
+              
+              <ion-col *ngSwitchCase="'SensataBMS'" size="12" size-lg="6" class="ion-no-padding">
+                <SensataBms [componentId]="widget.componentId"></SensataBms>
+              </ion-col>
+
             </ng-container>
 
           </ion-row>
