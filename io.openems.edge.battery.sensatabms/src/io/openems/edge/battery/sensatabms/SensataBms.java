@@ -1,18 +1,32 @@
 package io.openems.edge.battery.sensatabms;
 
+import static io.openems.common.channel.AccessMode.READ_ONLY;
+import static io.openems.common.channel.AccessMode.WRITE_ONLY;
+import static io.openems.common.types.OpenemsType.INTEGER;
+
 import io.openems.common.channel.AccessMode;
 import io.openems.common.channel.Unit;
 import io.openems.common.types.OpenemsType;
 import io.openems.edge.battery.api.Battery;
+import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.component.OpenemsComponent;
+import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.startstop.StartStoppable;
+import io.openems.edge.battery.sensatabms.StateMachine.State;
 
-public interface SensataBms extends Battery, OpenemsComponent {
+public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
-		// Test value, to be deleted.
-		//VALUE(Doc.of(OpenemsType.INTEGER).unit(Unit.NONE).accessMode(AccessMode.READ_ONLY))
+		// Channel for contactor control via Modbus / CAN. Possible values according to Sensata documentation:
+		// 0: Undefined
+		// 1: Idle
+		// 2: charging / running
+		// 3: discharging (currently not used: charging and discharging mode are using the same contactor sequences)
+		// 4: error
+		REQUEST_RELAY_STATE(Doc.of(INTEGER) //
+				.accessMode(WRITE_ONLY) //
+				.text("Set requested contactor sequence. 0=none, 1=idle, 2=run/charge, 3=discharge, 4=error")),
 		;
 
 		private final Doc doc;
@@ -27,4 +41,38 @@ public interface SensataBms extends Battery, OpenemsComponent {
 		}
 	}
 
+	/**
+	 * Gets the target Start/Stop mode from config or StartStop-Channel.
+	 * 
+	 * @return {@link StartStop}
+	 */
+	public StartStop getStartStopTarget();
+	
+	/**
+	 * Gets the current system status.
+	 * 
+	 * @return a Status enum containing the current system status
+	 */
+//	public default Status getSystemBasicStatus() {
+//		return this.getSystemBasicStatusChannel().value().asEnum();
+//	}
+
+	/**
+	 * Get the basic status channel.
+	 * 
+	 * @return The BASIC_STATUS channel
+	 */
+//	public default Channel<Status> getSystemBasicStatusChannel() {
+//		return this.channel(ChannelId.BASIC_STATUS);
+//	}
+
+	/**
+	 * Awake/sleep channel.
+	 * 
+	 * @return Channel
+	 *
+	 */
+	public default Channel<Integer> getRelayRequestStateChannel() {
+		return this.channel(ChannelId.REQUEST_RELAY_STATE);
+	}	
 }
