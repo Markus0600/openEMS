@@ -133,6 +133,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	@Deactivate
 	protected void deactivate() {
 		this.log.info("SensataBmsImpl::deactivate called.");
+		// ggf. hier Schütze ausschalten:
 		super.deactivate();
 	}
 
