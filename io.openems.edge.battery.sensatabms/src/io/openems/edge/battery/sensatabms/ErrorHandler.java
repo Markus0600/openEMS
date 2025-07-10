@@ -17,8 +17,8 @@ public class ErrorHandler extends StateHandler<State, Context> {
 
 	private Instant entryAt = Instant.MIN;
 
-	private final Logger log = LoggerFactory.getLogger(Context.class);
-
+	private final Logger log = LoggerFactory.getLogger(ErrorHandler.class);
+	
 	@Override
 	protected void onEntry(Context context) throws OpenemsNamedException {
 		this.entryAt = Instant.now();
@@ -26,6 +26,8 @@ public class ErrorHandler extends StateHandler<State, Context> {
 
 	@Override
 	public State runAndGetNextState(Context context) {
+
+		this.log.info("ErrorHandler::runAndGetNextState called.");
 
 		// Mark as stopped
 		// Currently, on error switch to state idle
@@ -41,9 +43,10 @@ public class ErrorHandler extends StateHandler<State, Context> {
 			battery._setStartStop(StartStop.STOP);
 			if(context.getRequestRelayState() != Status.IDLE) {
 				try {
+					this.log.info("Set relay request: idle (from error).");
 					context.setRequestRelayState(Status.IDLE);
 				} catch (OpenemsNamedException e) {
-					//this.debugLog("StateMachine failed: " + e.getMessage());
+					this.log.error("StateMachine failed: " + e.getMessage());
 					//this.logError(this.log, "StateMachine failed: " + e.getMessage());
 				}
 			}

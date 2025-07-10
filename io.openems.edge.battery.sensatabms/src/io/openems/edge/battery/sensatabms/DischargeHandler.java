@@ -17,6 +17,8 @@ public class DischargeHandler extends StateHandler<State, Context> {
 	@Override
 	public State runAndGetNextState(Context context) {
 
+		this.log.info("DischargeHandler::runAndGetNextState called.");
+		
 		var battery = context.getParent();
 
 //		if (battery.hasFaults()) {
@@ -28,10 +30,11 @@ public class DischargeHandler extends StateHandler<State, Context> {
 			battery._setStartStop(StartStop.START);
 			if(context.getRequestRelayState() != Status.DISCHARGE) {
 				try {
+					this.log.info("Set relay request: discharge.");
 					context.setRequestRelayState(Status.DISCHARGE);
 				} catch (OpenemsNamedException e) {
 					//this.debugLog("StateMachine failed: " + e.getMessage());
-					//this.logError(this.log, "StateMachine failed: " + e.getMessage());
+					this.log.error("StateMachine failed: " + e.getMessage());
 				}
 			}
 		}

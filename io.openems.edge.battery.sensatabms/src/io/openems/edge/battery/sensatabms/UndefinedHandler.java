@@ -26,6 +26,8 @@ public class UndefinedHandler extends StateHandler<State, Context> {
 	@Override
 	public State runAndGetNextState(Context context) {
 
+		this.log.info("UndefinedHandler::runAndGetNextState called.");
+
 		// Mark as stopped
 		// Currently, on error switch to state idle
 		// TODO: maybe change later on.
@@ -40,10 +42,11 @@ public class UndefinedHandler extends StateHandler<State, Context> {
 			battery._setStartStop(StartStop.STOP);
 			if(context.getRequestRelayState() != Status.IDLE) {
 				try {
+					this.log.info("Set relay request: idle (from undefined).");
 					context.setRequestRelayState(Status.IDLE);
 				} catch (OpenemsNamedException e) {
 					//this.debugLog("StateMachine failed: " + e.getMessage());
-					//this.logError(this.log, "StateMachine failed: " + e.getMessage());
+					this.log.error("StateMachine failed: " + e.getMessage());
 				}
 			}
 		}

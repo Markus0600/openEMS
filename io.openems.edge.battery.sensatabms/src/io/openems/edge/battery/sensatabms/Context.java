@@ -24,6 +24,8 @@ public class Context extends AbstractContext<SensataBms> {
 	
 	public void setRequestRelayState(Status requestRelayState) throws OpenemsNamedException {
 		
+		this.log.info("Context::setRequestRelayState trying to set relay to state " + requestRelayState.toString() + ". Current state: " + currentRelayState.toString());
+		
 		// Null pointer check
 		if (this.RequestRelayState == null) {
 			this.logInfo(this.log,
@@ -52,6 +54,8 @@ public class Context extends AbstractContext<SensataBms> {
 			this.logInfo(this.log,
 					"New state requested: " + requestRelayState.toString());
 		}
+		this.log.info("Context::setRequestRelayState finished.");
+
 	}
 	
 	public Status getRequestRelayState() {

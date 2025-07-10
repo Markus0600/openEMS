@@ -17,6 +17,8 @@ public class RunningHandler extends StateHandler<State, Context> {
 	@Override
 	public State runAndGetNextState(Context context) {
 
+		this.log.info("RunningHandler::runAndGetNextState called.");
+		
 		var battery = context.getParent();
 
 //		if (battery.hasFaults()) {
@@ -27,10 +29,11 @@ public class RunningHandler extends StateHandler<State, Context> {
 			battery._setStartStop(StartStop.START);
 			if(context.getRequestRelayState() != Status.RUNNING) {
 				try {
+					this.log.info("Set relay request: charge / running.");
 					context.setRequestRelayState(Status.RUNNING);
 				} catch (OpenemsNamedException e) {
 					//this.debugLog("StateMachine failed: " + e.getMessage());
-					//this.logError(this.log, "StateMachine failed: " + e.getMessage());
+					this.log.error("StateMachine failed: " + e.getMessage());
 				}
 			}
 		}

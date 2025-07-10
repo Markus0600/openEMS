@@ -87,6 +87,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 
 	@Activate
 	private void activate(ComponentContext context, Config config) throws OpenemsException {
+		this.log.info("SensataBmsImpl::activate called.");
 		if(super.activate(context, config.id(), config.alias(), config.enabled(), config.modbusUnitId(), this.cm, "Modbus",
 				config.modbus_id())) {
 			return;
@@ -130,6 +131,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	@Override
 	@Deactivate
 	protected void deactivate() {
+		this.log.info("SensataBmsImpl::deactivate called.");
 		super.deactivate();
 	}
 
@@ -152,6 +154,8 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	
 	@Override
 	protected ModbusProtocol defineModbusProtocol() /*throws OpenemsException*/ {
+		this.log.info("SensataBmsImpl::defineModbusProtocol called.");
+
 		// TODO implement ModbusProtocol
 		return new ModbusProtocol(this,
 				
@@ -222,6 +226,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 
 	@Override
 	public void handleEvent(Event event) {
+		this.log.info("SensataBmsImpl::handleEvent called. Event details: topic: " + event.getTopic() + " text: " + event.toString());
 		if (!this.isEnabled()) {
 			return;
 		}
@@ -237,6 +242,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	 * Handles the State-Machine.
 	 */
 	private void handleStateMachine() {
+		this.log.info("SensataBmsImpl::handleStateMachine called.");
 		final var currentState = this.stateMachine.getCurrentState();
 		//this._setStateMachine(currentState);
 
@@ -256,6 +262,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		var context = new Context(this, requestRelayState);
 
 		try {
+			this.log.info("SensataBmsImpl::handleStateMachine trying to run FSM.");
 			this.stateMachine.run(context);
 			//this.channel(PylontechPowercubeM2Battery.ChannelId.RUN_FAILED).setNextValue(false);
 		} catch (OpenemsNamedException e) {
@@ -268,14 +275,61 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	@Override
 	public void setStartStop(StartStop value) {
 		this.logInfo(log, "Trying to set Start / Stop to value " + value.toString());
+		
+		// TODO: Quick & dirty -> improve.
+		//this.stateMachine.forceNextState(State.RUNNING);
+		
+		// Trying to set Start / Stop value...
 		if (this.startStopTarget.getAndSet(value) != value) {
-			this.stateMachine.forceNextState(State.UNDEFINED);
+			// Value could not be set, for whatever the reason is.
+			//this.stateMachine.forceNextState(State.UNDEFINED);
 			this.log.error("Unable to set Start/Stop to " + value.toString());
+		}
+		else {
+			// Value could be set.
+			this.logInfo(log, "Trying to set Start / Stop to value " + value.toString() + " : value set.");
+			
+			// ToDo: run FSM
+			// Quick&Dirty: directly switch relays. First prepare write channel...
+			IntegerWriteChannel requestRelayState = null; 
+			try {
+				requestRelayState = this.channel(SensataBms.ChannelId.REQUEST_RELAY_STATE);
+			} catch (IllegalArgumentException e1) {
+				this.logError(this.log, //
+						"setStartStop: Setting requestRelayState channel failed: " + e1.getMessage());
+				e1.printStackTrace();
+			}
+			if(requestRelayState != null) {
+				this.log.info("setStartStop: relay operation...");
+				// Write channel available. Depending on Start / Stop switch relay on or off:
+				if(value == StartStop.START) {
+					// switch on
+					try {
+						this.log.info("setStartStop: relay operation: set to " + Status.RUNNING.getValue());
+						requestRelayState.setNextWriteValue(/*Status.RUNNING.getValue()*/0x02);
+					} catch (OpenemsNamedException e) {
+						this.logError(this.log, //
+								"setStartStop: Setting requestRelayState to run failed: " + e.getMessage());
+						e.printStackTrace();
+					}
+				} else {
+					// switch off
+					try {
+						this.log.info("setStartStop: relay operation: set to " + Status.IDLE.getValue());
+						requestRelayState.setNextWriteValue(/*Status.IDLE.getValue()*/0x01);
+					} catch (OpenemsNamedException e) {
+						this.logError(this.log, //
+								"setStartStop: Setting requestRelayState to idle failed: " + e.getMessage());
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 
 	@Override
 	public StartStop getStartStopTarget() {
+		this.log.info("SensataBmsImpl::getStartStopTarget called.");
 		return switch (this.config.startStop()) {
 		case AUTO -> this.startStopTarget.get();
 		case START -> StartStop.START;
@@ -286,15 +340,17 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	@Override
 	public String debugLog() {
 		return 
-				"Modbus Values: " + this.channel(Battery.ChannelId.CAPACITY).value().asString()
-				+ " " + this.channel(Battery.ChannelId.CHARGE_MAX_CURRENT).value().asString()
-				+ " " + this.channel(Battery.ChannelId.DISCHARGE_MAX_CURRENT).value().asString()
-				+ " " + this.channel(Battery.ChannelId.SOC).value().asString()
-				+ " " + this.channel(Battery.ChannelId.SOH).value().asString()
-				+ " " + this.channel(Battery.ChannelId.CURRENT).value().asString()
-				+ " " + this.channel(Battery.ChannelId.MIN_CELL_VOLTAGE).value().asString()
-				+ " " + this.channel(Battery.ChannelId.MAX_CELL_VOLTAGE).value().asString()
-				+ " " + this.channel(Battery.ChannelId.VOLTAGE).value().asString()
+				"Modbus Values: cap.:" 	+ this.channel(Battery.ChannelId.CAPACITY).value().asString()
+				+ " max_Icharge: " 			+ this.channel(Battery.ChannelId.CHARGE_MAX_CURRENT).value().asString()
+				+ " max_Idischarge: " 		+ this.channel(Battery.ChannelId.DISCHARGE_MAX_CURRENT).value().asString()
+				+ " soc: " 							+ this.channel(Battery.ChannelId.SOC).value().asString()
+				+ " soh: " 							+ this.channel(Battery.ChannelId.SOH).value().asString()
+				+ " I: " 									+ this.channel(Battery.ChannelId.CURRENT).value().asString()
+				+ " min_Vc: " 						+ this.channel(Battery.ChannelId.MIN_CELL_VOLTAGE).value().asString()
+				+ " max_Vc: " 						+ this.channel(Battery.ChannelId.MAX_CELL_VOLTAGE).value().asString()
+				+ " V: " 								+ this.channel(Battery.ChannelId.VOLTAGE).value().asString()
+				
+				//+ " R.State: " 						+ this.channel(SensataBms.ChannelId.REQUEST_RELAY_STATE).value().asString()
 				;
 	}
 	
