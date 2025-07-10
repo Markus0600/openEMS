@@ -35,6 +35,7 @@ import io.openems.edge.bridge.modbus.api.element.SignedWordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;
 import io.openems.edge.bridge.modbus.api.element.FloatQuadruplewordElement;
 import io.openems.edge.bridge.modbus.api.element.FloatDoublewordElement;
+import io.openems.edge.bridge.modbus.api.element.BitsWordElement;
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC6WriteRegisterTask;
 import io.openems.edge.common.channel.Doc;
@@ -219,7 +220,8 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	            // Values required for Sensata itself - write only
 				new FC6WriteRegisterTask(
 						REQUEST_RELAY_STATE,
-						m(SensataBms.ChannelId.REQUEST_RELAY_STATE, new UnsignedWordElement(REQUEST_RELAY_STATE)))
+						m(SensataBms.ChannelId.REQUEST_RELAY_STATE, new UnsignedWordElement(REQUEST_RELAY_STATE))
+						)
 	            
 				);
 	}
@@ -291,6 +293,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			
 			// ToDo: run FSM
 			// Quick&Dirty: directly switch relays. First prepare write channel...
+			
 			IntegerWriteChannel requestRelayState = null; 
 			try {
 				requestRelayState = this.channel(SensataBms.ChannelId.REQUEST_RELAY_STATE);
@@ -306,7 +309,8 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 					// switch on
 					try {
 						this.log.info("setStartStop: relay operation: set to " + Status.RUNNING.getValue());
-						requestRelayState.setNextWriteValue(/*Status.RUNNING.getValue()*/0x02);
+						requestRelayState.setNextWriteValue(/*Status.RUNNING.getValue()*/0x0200);
+						this.channel(SensataBms.ChannelId.REQUEST_RELAY_STATE).setNextValue(0x0200);
 					} catch (OpenemsNamedException e) {
 						this.logError(this.log, //
 								"setStartStop: Setting requestRelayState to run failed: " + e.getMessage());
@@ -316,7 +320,8 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 					// switch off
 					try {
 						this.log.info("setStartStop: relay operation: set to " + Status.IDLE.getValue());
-						requestRelayState.setNextWriteValue(/*Status.IDLE.getValue()*/0x01);
+						requestRelayState.setNextWriteValue(/*Status.IDLE.getValue()*/0x0100);
+						this.channel(SensataBms.ChannelId.REQUEST_RELAY_STATE).setNextValue(0x0100);
 					} catch (OpenemsNamedException e) {
 						this.logError(this.log, //
 								"setStartStop: Setting requestRelayState to idle failed: " + e.getMessage());
@@ -324,6 +329,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 					}
 				}
 			}
+			
 		}
 	}
 
