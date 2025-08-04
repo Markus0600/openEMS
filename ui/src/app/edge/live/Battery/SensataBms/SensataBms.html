@@ -1,0 +1,27 @@
+<ng-container *ngIf="isInitialized">
+    <oe-flat-widget [title]="component.alias" [icon]="{name: 'battery-half', color: 'success'}">
+        <oe-flat-widget-line [name]="'CAPACITY' | translate"
+            [channelAddress]="component.id + '/CAPACITY'" [converter]="Converter.TO_WATT_HOURS">
+        </oe-flat-widget-line>
+        <oe-flat-widget-line [name]="'CHARGE MAX CURRENT' | translate"
+            [channelAddress]="component.id + '/CHARGE_MAX_CURRENT'" [converter]="Converter.CURRENT_TO_AMPERE">
+        </oe-flat-widget-line>
+        <oe-flat-widget-line [name]="'DISCHARGE MAX CURRENT' | translate"
+            [channelAddress]="component.id + '/DISCHARGE_MAX_CURRENT'" [converter]="Converter.CURRENT_TO_AMPERE">
+        </oe-flat-widget-line>
+        <oe-flat-widget-line [name]="'SOC' | translate"
+            [channelAddress]="component.id + '/SOC'" [converter]="Converter.STATE_IN_PERCENT">
+        </oe-flat-widget-line>
+        <oe-flat-widget-line [name]="'CURRENT' | translate"
+            [channelAddress]="component.id + '/CURRENT'" [converter]="Converter.CURRENT_TO_AMPERE">
+        </oe-flat-widget-line>
+        <oe-flat-widget-line [name]="'MIN CELL VOLTAGE' | translate"
+            [channelAddress]="component.id + '/MIN_CELL_VOLTAGE'" [converter]="Converter.VOLTAGE_IN_MILLIVOLT_TO_VOLT">
+        </oe-flat-widget-line>
+        <oe-flat-widget-line [name]="'MAX CELL VOLTAGE' | translate"
+            [channelAddress]="component.id + '/MAX_CELL_VOLTAGE'" [converter]="Converter.VOLTAGE_IN_MILLIVOLT_TO_VOLT">
+        </oe-flat-widget-line>
+    </oe-flat-widget>
+</ng-container>
+<p>isInitialized: {{ isInitialized }}</p>
+<p>component.id: {{ component.id }}</p>
