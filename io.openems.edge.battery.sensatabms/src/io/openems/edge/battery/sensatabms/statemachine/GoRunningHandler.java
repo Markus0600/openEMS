@@ -22,9 +22,9 @@ public class GoRunningHandler extends StateHandler<State, Context> {
             return State.RUNNING;
         }
 
-        if (context.getRequestRelayState() != Status.RUNNING) {
+        if (context.getRequestRelayState() != Status.CHARGE) {
             this.log.info("Request relay sequence RUNNING");
-            context.setRequestRelayState(Status.RUNNING);
+            context.setRequestRelayState(Status.CHARGE);
         }
         
 		if (battery.hasFaults()) {

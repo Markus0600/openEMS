@@ -40,7 +40,7 @@ public class Context extends AbstractContext<SensataBms> {
 		if(
 				(requestRelayState != Status.UNDEFINED)
 				&& (requestRelayState != Status.IDLE)
-				&& (requestRelayState != Status.RUNNING)
+				&& (requestRelayState != Status.CHARGE)
 				&& (requestRelayState != Status.DISCHARGE)
 				&& (requestRelayState != Status.ERROR)
 				)

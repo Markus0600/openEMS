@@ -77,7 +77,7 @@ public class ErrorHandler extends StateHandler<State, Context> {
         
         // Faults cleared and wait period completed - safe to transition
         this.log.info("Faults cleared after " + timeInError + "s - transitioning to IDLE");
-        return State.IDLE;
+        return State.UNDEFINED;
     }
 
     @Override

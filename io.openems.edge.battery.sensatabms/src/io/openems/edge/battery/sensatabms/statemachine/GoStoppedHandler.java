@@ -18,8 +18,8 @@ public class GoStoppedHandler extends StateHandler<State, Context> {
         var battery = context.getParent();
         battery._setStartStop(StartStop.STOP);
 
-        if (context.getRelaySequence() == State.IDLE.getValue()) {
-            return State.IDLE;
+        if (context.getRelaySequence() == State.UNDEFINED.getValue()) {
+            return State.UNDEFINED;
         }
 
         if (context.getRequestRelayState() != Status.IDLE) {

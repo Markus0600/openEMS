@@ -5,7 +5,7 @@ import io.openems.common.types.OptionsEnum;
 public enum Status implements OptionsEnum {
 	UNDEFINED(0, "Undefined"), //
 	IDLE(1, "Idle"), //
-	RUNNING(2, "Running / Charge"), //
+	CHARGE(2, "Charge"), //
 	DISCHARGE(3, "Discharge"), //
 	ERROR(4, "Error");
 

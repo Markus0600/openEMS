@@ -54,7 +54,7 @@ public class IdleHandler extends StateHandler<State, Context> {
 		// check for requested transition
 		return switch (battery.getStartStopTarget()) {
 		case START -> State.GO_RUNNING;
-		default -> State.IDLE;
+		default -> State.UNDEFINED;
 		};
 	}
 

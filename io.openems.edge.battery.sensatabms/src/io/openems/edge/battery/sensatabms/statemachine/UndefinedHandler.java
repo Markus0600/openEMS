@@ -53,7 +53,7 @@ public class UndefinedHandler extends StateHandler<State, Context> {
 			}
 		}
 
-		return State.IDLE;
+		return State.UNDEFINED;
 	}
 
 }

@@ -39,6 +39,7 @@ import io.openems.edge.bridge.modbus.api.element.BitsWordElement;
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC6WriteRegisterTask;
 import io.openems.edge.common.channel.Doc;
+import io.openems.edge.common.channel.ChannelId;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.component.OpenemsComponent;
@@ -317,7 +318,30 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		}
 		};
 	}
+	
+	/* ToDo decision sending to relay, which sequence is running (charge/discharge)
+	private final int value;
+    RelayRequestCommand(int value) { this.value = value; }
+    public int getValue() { return value; }
+	
+    @Override
+    public void run() {
+        // Sollwert aus dem ESS-Controller (z.B. GridOptimizedCharge)
+        int setpoint = this.channel(ChannelId.ACTIVE_POWER_SETPOINT).getNextValue().orElse(0);
 
+        RelayRequestCommand relayCmd;
+        if (setpoint > 0) {
+            relayCmd = RelayRequestCommand.SEQUENCE_1; // Laden
+        } else if (setpoint < 0) {
+            relayCmd = RelayRequestCommand.SEQUENCE_2; // Entladen
+        } else {
+            relayCmd = RelayRequestCommand.IDLE;       // Standby
+        }
+
+        // Modbus-Register setzen
+        requestRelayStateChannel.setNextWriteValue(relayCmd.getValue());
+    }
+*/
 	@Override
 	public String debugLog() {
 		return 

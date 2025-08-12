@@ -28,10 +28,10 @@ public class RunningHandler extends StateHandler<State, Context> {
 
 		if(!battery.isStarted()) {
 			battery._setStartStop(StartStop.START);
-			if(context.getRequestRelayState() != Status.RUNNING) {
+			if(context.getRequestRelayState() != Status.CHARGE) {
 				try {
 					this.log.info("Set relay request: charge / running.");
-					context.setRequestRelayState(Status.RUNNING);
+					context.setRequestRelayState(Status.CHARGE);
 				} catch (OpenemsNamedException e) {
 					//this.debugLog("StateMachine failed: " + e.getMessage());
 					this.log.error("StateMachine failed: " + e.getMessage());
