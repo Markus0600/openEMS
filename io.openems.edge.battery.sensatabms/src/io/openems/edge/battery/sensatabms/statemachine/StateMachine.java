@@ -7,12 +7,11 @@ import io.openems.edge.common.statemachine.StateHandler;
 public class StateMachine extends AbstractStateMachine<StateMachine.State, Context> {
 
 	public enum State implements io.openems.edge.common.statemachine.State<State>, OptionsEnum {
-		UNDEFINED(0), 		// Sensata state Undefined
-//		IDLE(1), 					// Sensata state Idle
-		RUNNING(2), 			//	Sensata state charge
-		ERROR(4), 				// Sensata state error		
-		GO_RUNNING(10),		//state for transition idle -> running
-		GO_STOPPED(11), 	//state for transition running -> idle 
+		UNDEFINED(0), 			//state Undefined
+		RUNNING(2), 			//state charge or discharge
+		ERROR(4), 				//state error		
+		GO_RUNNING(10),			//state for transition idle -> running
+		GO_STOPPED(11), 		//state for transition running -> idle 
 		;
 
 		private final int value;
@@ -50,7 +49,6 @@ public class StateMachine extends AbstractStateMachine<StateMachine.State, Conte
 	public StateHandler<State, Context> getStateHandler(State state) {
 		return switch (state) {
 		case UNDEFINED -> new UndefinedHandler();
-//		case IDLE -> new IdleHandler();
 		case GO_RUNNING -> new GoRunningHandler();
 		case RUNNING -> new RunningHandler();
 		case GO_STOPPED -> new GoStoppedHandler();

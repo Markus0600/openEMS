@@ -41,7 +41,6 @@ import { EnergymonitorModule } from "./energymonitor/energymonitor.module";
 import { InfoComponent } from "./info/info.component";
 import { Io_Api_DigitalInputComponent } from "./Io/Api_DigitalInput/Io_Api_DigitalInput";
 import { Io_Api_DigitalInput_ModalComponent } from "./Io/Api_DigitalInput/modal/modal.component";
-import { SensataBmsComponent } from "./Battery/SensataBms/SensataBms";
 import { LiveComponent } from "./live.component";
 import { Evcs_Api_ClusterComponent } from "./Multiple/Evcs_Api_Cluster/Evcs_Api_Cluster";
 import { EvcsChartComponent } from "./Multiple/Evcs_Api_Cluster/modal/evcs-chart/evcs.chart";
@@ -94,7 +93,6 @@ import { Evcs_Api_ClusterModalComponent } from "./Multiple/Evcs_Api_Cluster/moda
     InfoComponent,
     Io_Api_DigitalInput_ModalComponent,
     Io_Api_DigitalInputComponent,
-    SensataBmsComponent,
     LiveComponent,
     StorageComponent,
     StorageModalComponent,

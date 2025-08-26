@@ -4,34 +4,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
+import io.openems.edge.battery.sensatabms.Status;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
 import io.openems.edge.common.startstop.StartStop;
-import io.openems.edge.battery.sensatabms.Status;
 import io.openems.edge.common.statemachine.StateHandler;
 
 public class GoStoppedHandler extends StateHandler<State, Context> {
 
-    private final Logger log = LoggerFactory.getLogger(GoStoppedHandler.class);
+	private final Logger log = LoggerFactory.getLogger(GoStoppedHandler.class);
 
-    @Override
-    public State runAndGetNextState(Context context) throws OpenemsNamedException {
-        var battery = context.getParent();
-        battery._setStartStop(StartStop.STOP);
+	@Override
+	public State runAndGetNextState(Context context) throws OpenemsNamedException {
+		var battery = context.getParent();
 
-        if (context.getRelaySequence() == State.UNDEFINED.getValue()) {
-            return State.UNDEFINED;
-        }
+		// In GO_STOPPED: sicher anhalten
+		battery._setStartStop(StartStop.STOP);
 
-        if (context.getRequestRelayState() != Status.IDLE) {
-            this.log.info("Request relay sequence IDLE");
-            context.setRequestRelayState(Status.IDLE);
-        }
-        
 		if (battery.hasFaults()) {
-		    this.log.info("Fault detected, going to ERROR");
-		    return State.ERROR;
+			return State.ERROR;
 		}
 
-        return State.GO_STOPPED;
-    }
+		// Ziel: IDLE erreichen
+		if (context.getRequestRelayState() != Status.IDLE) {
+			this.log.info("Request relay sequence IDLE");
+			context.setRequestRelayState(Status.IDLE);
+		}
+
+		// Übergang abgeschlossen, wenn Relais IDLE meldet
+		if (context.getRelaySequence() == Status.IDLE.getValue()) {
+			return State.UNDEFINED; // sicherer Ruhezustand
+		}
+
+		return State.GO_STOPPED;
+	}
+
 }
