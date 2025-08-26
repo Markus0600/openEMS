@@ -13,15 +13,26 @@ import io.openems.edge.common.statemachine.StateHandler;
 
 public class UndefinedHandler extends StateHandler<State, Context> {
 
-	private static final int WAIT_IN_ERROR_STATE_SECONDS = 120;
-
 	private Instant entryAt = Instant.MIN;
 
-	private final Logger log = LoggerFactory.getLogger(Context.class);
+	private final Logger log = LoggerFactory.getLogger(UndefinedHandler.class);
 
 	@Override
 	protected void onEntry(Context context) throws OpenemsNamedException {
 		this.entryAt = Instant.now();
+		this.log.info("Entering UNDEFINED state - battery in safe resting state");
+		
+		var battery = context.getParent();
+		
+		// Ensure battery is stopped and relay is IDLE for safety
+		battery._setStartStop(StartStop.STOP);
+		
+		try {
+			context.setRequestRelayState(Status.IDLE);
+			this.log.info("Set relay to IDLE for safety");
+		} catch (OpenemsNamedException e) {
+			this.log.error("Failed to set relay to IDLE in UNDEFINED state: " + e.getMessage());
+		}
 	}
 
 	@Override
@@ -29,30 +40,35 @@ public class UndefinedHandler extends StateHandler<State, Context> {
 
 		this.log.info("UndefinedHandler::runAndGetNextState called.");
 
-		// Mark as stopped
-		// Currently, on error switch to state idle
-		// TODO: maybe change later on.
 		var battery = context.getParent();
 
+		// Check for faults first - highest priority
 		if (battery.hasFaults()) {
 		    this.log.info("Fault detected, going to ERROR");
 		    return State.ERROR;
 		}
 
-		// Set battery as stopped
-		if(battery.isStarted()) {
+		// Check if we should start the battery
+		if (battery.getStartStopTarget() == StartStop.START) {
+			this.log.info("Start requested, transitioning to GO_RUNNING");
+			return State.GO_RUNNING;
+		}
+
+		// Default behavior: ensure battery is stopped and relay is IDLE
+		if (battery.isStarted()) {
 			battery._setStartStop(StartStop.STOP);
-			if(context.getRequestRelayState() != Status.IDLE) {
-				try {
-					this.log.info("Set relay request: idle (from undefined).");
-					context.setRequestRelayState(Status.IDLE);
-				} catch (OpenemsNamedException e) {
-					//this.debugLog("StateMachine failed: " + e.getMessage());
-					this.log.error("StateMachine failed: " + e.getMessage());
-				}
+		}
+		
+		if (context.getRequestRelayState() != Status.IDLE) {
+			try {
+				this.log.info("Set relay request: IDLE (from UNDEFINED).");
+				context.setRequestRelayState(Status.IDLE);
+			} catch (OpenemsNamedException e) {
+				this.log.error("Failed to set relay to IDLE in UNDEFINED state: " + e.getMessage());
 			}
 		}
 
+		// Stay in UNDEFINED until start is requested
 		return State.UNDEFINED;
 	}
 

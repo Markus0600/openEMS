@@ -14,33 +14,52 @@ public class RunningHandler extends StateHandler<State, Context> {
 	private final Logger log = LoggerFactory.getLogger(RunningHandler.class);
 
 	@Override
+	protected void onEntry(Context context) throws OpenemsNamedException {
+		this.log.info("Entering RUNNING state - battery is operational");
+		var battery = context.getParent();
+		
+		// Ensure battery is started when entering RUNNING
+		if (!battery.isStarted()) {
+			battery._setStartStop(StartStop.START);
+		}
+	}
+
+	@Override
 	public State runAndGetNextState(Context context) {
 		var battery = context.getParent();
 
+		// Ensure battery stays started during operation
 		if (!battery.isStarted()) {
 			battery._setStartStop(StartStop.START);
 		}
 
+		// Check for faults - safety first
 		if (battery.hasFaults()) {
+			this.log.warn("Faults detected during RUNNING, transitioning to ERROR");
 			return State.ERROR;
 		}
 
-		// Richtung regelmäßig nachführen
+		// Dynamic relay control based on ESS setpoint
 		int p = ((SensataBms) battery).getLatestEssSetpointW();
 		int db = ((SensataBms) battery).getDeadbandW();
 		Status desired = (Math.abs(p) <= db) ? Status.IDLE : ((p < 0) ? Status.CHARGE : Status.DISCHARGE);
 
-		// Wenn gewünschte Richtung != IDLE, dann anfordern (IDLE-Übergang übernimmt GO_STOPPED bei STOP)
+		// Update relay state if needed (IDLE transition handled by GO_STOPPED when STOP requested)
 		if (context.getRequestRelayState() != desired) {
 			try {
 				context.setRequestRelayState(desired);
+				this.log.debug("Updated relay state to {} based on setpoint {}W", desired, p);
 			} catch (Exception e) {
-				this.log.debug("Could not set relay state to {} this cycle. Will retry.", desired);
+				this.log.debug("Could not set relay state to {} this cycle. Will retry next cycle.", desired);
 			}
 		}
 
+		// Check if stop is requested
 		return switch (battery.getStartStopTarget()) {
-			case STOP -> State.GO_STOPPED;
+			case STOP -> {
+				this.log.info("Stop requested, transitioning to GO_STOPPED");
+				yield State.GO_STOPPED;
+			}
 			default -> State.RUNNING;
 		};
 	}
