@@ -15,26 +15,41 @@ public class GoRunningHandler extends StateHandler<State, Context> {
 	private final Logger log = LoggerFactory.getLogger(GoRunningHandler.class);
 
 	@Override
+	protected void onEntry(Context context) throws OpenemsNamedException {
+		this.log.info("Entering GO_RUNNING state - preparing battery for operation");
+		var battery = context.getParent();
+		
+		// Ensure battery is set to START when entering GO_RUNNING
+		battery._setStartStop(StartStop.START);
+	}
+
+	@Override
 	public State runAndGetNextState(Context context) throws OpenemsNamedException {
 		var battery = context.getParent();
 
-		// Bei GO_RUNNING aktiv starten
-		battery._setStartStop(StartStop.START);
-
+		// Check for faults - safety first
 		if (battery.hasFaults()) {
+			this.log.warn("Faults detected during GO_RUNNING, transitioning to ERROR");
 			return State.ERROR;
+		}
+
+		// Ensure battery is actively starting
+		if (!battery.isStarted()) {
+			battery._setStartStop(StartStop.START);
 		}
 
 		// Wenn BMS IDLE meldet aktiviere Discharge für Precharge -> RUNNING
 		int rs = context.getRelaySequence();
-		this.log.info("actual relay state BMS: {}" + rs);
+		this.log.info("Current relay sequence from BMS: {}", rs);
 		
 		if (rs == Status.IDLE.getValue()) {
 			context.setRequestRelayState(Status.DISCHARGE);
-			this.log.info("activated Precharge -> State Running");
+			this.log.info("BMS reports IDLE, requesting DISCHARGE for precharge - transitioning to RUNNING");
 			return State.RUNNING;
 		}
 		
+		// Still waiting for BMS to reach IDLE state
+		this.log.debug("Waiting for BMS to reach IDLE state (current: {})", rs);
 		return State.GO_RUNNING;
 	}
 }
