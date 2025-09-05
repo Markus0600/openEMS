@@ -110,12 +110,12 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 	}
 
 	@Override
-	public int disChargeMinVoltage() {
+	public int DischargeMinVoltage() {
 		return this.builder.disChargeMinVoltage;
 	}
 
 	@Override
-	public int chargeMaxVoltage() {
+	public int ChargeMaxVoltage() {
 		return this.builder.chargeMaxVoltage;
 	}
 
@@ -125,13 +125,19 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 	}
 
 	@Override
-	public int minCellTemperature() {
-		return this.builder.minCellTemperature;
+	public String ess_id() {
+		return this.builder.id;
 	}
 
-	@Override
-	public int maxCellTemperature() {
-		return this.builder.maxCellTemperature;
-	}
+	// TODO (maybe) to be implemented later on. 
+//	@Override
+//	public int minCellTemperature() {
+//		return this.builder.minCellTemperature;
+//	}
+//
+//	@Override
+//	public int maxCellTemperature() {
+//		return this.builder.maxCellTemperature;
+//	}
 	
 }
