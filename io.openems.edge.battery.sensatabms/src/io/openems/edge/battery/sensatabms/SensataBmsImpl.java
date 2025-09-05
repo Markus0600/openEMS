@@ -176,7 +176,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private static final int PARALLEL_PACKS_AGGREGATED_MAX_CELL_TEMPERATURE_INDEX = 414;
 	private static final int PARALLEL_PACKS_AGGREGATED_MIN_CELL_VOLTAGE_INDEX = 415;
 	private static final int PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE_INDEX = 416;
-	private static final int PARALLEL_PACKS_REQUEST_RELAY_STATE = 420;
+	private static final int PARALLEL_PACKS_REQUEST_RELAY_STATE = 300;
 	
 	// Modbus addresses used for communication with Sensata BMS - write only
 	private static final int REQUEST_RELAY_STATE = 100;

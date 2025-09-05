@@ -264,7 +264,7 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 
 		// Sensata ID: 48604
 		// Name: PARALLEL_PACKS_REQUEST_RELAY_STATE
-		// Modbus register: 420 TODO to be reviewed. Maybe change CAN->Modbus table
+		// Modbus register: 300 (write)
 		// Type: uint8
 		// Unit: -
 		PARALLEL_PACKS_REQUEST_RELAY_STATE(Doc.of(SHORT) //
