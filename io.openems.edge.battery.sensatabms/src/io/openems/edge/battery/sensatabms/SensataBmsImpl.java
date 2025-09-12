@@ -29,6 +29,7 @@ import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.types.ChannelAddress;
 
 import io.openems.edge.battery.api.Battery;
+import io.openems.edge.battery.protection.BatteryProtection;
 import io.openems.edge.battery.sensatabms.statemachine.Context;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
@@ -43,7 +44,7 @@ import io.openems.edge.bridge.modbus.api.element.SignedWordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;														 
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC6WriteRegisterTask;
-
+import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.component.ComponentManager;														 
@@ -69,6 +70,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 
 	private Config config = null;
 	private final Logger log = LoggerFactory.getLogger(SensataBmsImpl.class);
+	private BatteryProtection batteryProtection = null;
 
 	// ESS setpoint tracking
 	private volatile int latestEssSetpoint = 0;
@@ -103,7 +105,8 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				ModbusComponent.ChannelId.values(), //
 				StartStoppable.ChannelId.values(), //
 				SensataBms.ChannelId.values(), //
-				Battery.ChannelId.values() //
+				Battery.ChannelId.values(), //
+				BatteryProtection.ChannelId.values() //
 		);
 	}
 
@@ -115,6 +118,10 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			return;
 		}
 		this.config = config;
+		
+	    this.batteryProtection = BatteryProtection.create(this) //
+	            .applyBatteryProtectionDefinition(new BatteryProtectionDefinition(), this.componentManager) //
+	            .build();
 	}
 
 	@Override
@@ -252,6 +259,23 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		}
 							 
 		if (EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE.equals(event.getTopic())) {
+			
+            Integer chargeMaxCurrent = this.getChargeMaxCurrent().orElse(null);
+            if (chargeMaxCurrent != null) {
+                Channel<Integer> bpChargeBmsChannel = this.channel(BatteryProtection.ChannelId.BP_CHARGE_BMS);
+                bpChargeBmsChannel.setNextValue(chargeMaxCurrent);
+            }
+            
+            Integer dischargeMaxCurrent = this.getDischargeMaxCurrent().orElse(null);
+            if (dischargeMaxCurrent != null) {
+                Channel<Integer> bpDischargeBmsChannel = this.channel(BatteryProtection.ChannelId.BP_DISCHARGE_BMS);
+                bpDischargeBmsChannel.setNextValue(dischargeMaxCurrent);
+            }
+	            
+	        if(this.batteryProtection != null) {
+	        	this.batteryProtection.apply();
+	        }
+			
 			// Setpoint pro Zyklus aktualisieren
 			this.updateLatestEssSetpointFromEssChannel();
 			// State-Machine ausführen
