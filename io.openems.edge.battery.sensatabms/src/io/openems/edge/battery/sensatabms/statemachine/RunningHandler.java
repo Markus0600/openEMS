@@ -3,6 +3,7 @@ package io.openems.edge.battery.sensatabms.statemachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.edge.battery.sensatabms.SensataBms;
 import io.openems.edge.battery.sensatabms.Status;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
@@ -41,8 +42,10 @@ public class RunningHandler extends StateHandler<State, Context> {
 
 		// Dynamic relay control based on ESS setpoint
 		int p = ((SensataBms) battery).getLatestEssSetpointW();
-		int db = ((SensataBms) battery).getDeadbandW();
-		Status desired = (Math.abs(p) <= db) ? Status.IDLE : ((p < 0) ? Status.CHARGE : Status.DISCHARGE);
+		this.log.info("Latest Setpoint from ESS {}", p);
+//		int db = ((SensataBms) battery).getDeadbandW();
+		Status desired = ((p < 0) ? Status.CHARGE : Status.DISCHARGE);
+//		Status desired = (Math.abs(p) <= db) ? Status.IDLE : ((p < 0) ? Status.CHARGE : Status.DISCHARGE);
 
 		// Update relay state if needed (IDLE transition handled by GO_STOPPED when STOP requested)
 		if (context.getRequestRelayState() != desired) {
@@ -60,7 +63,11 @@ public class RunningHandler extends StateHandler<State, Context> {
 				this.log.info("Stop requested, transitioning to GO_STOPPED");
 				yield State.GO_STOPPED;
 			}
-			default -> State.RUNNING;
+			default ->  {
+				this.log.info("Entered Running");
+				this.log.info("Actual Requested Relay State to BMS: {}", desired);
+				yield State.RUNNING;
+			}
 		};
 	}
 }

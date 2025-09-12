@@ -10,6 +10,7 @@ import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.startstop.StartStoppable;
+//import io.openems.edge.battery.sensatabms.Status;
 
 public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 
@@ -17,15 +18,19 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 		// Channel for contactor control via Modbus / CAN. Possible values according to Sensata documentation:
 		// 0: Undefined
 		// 1: Idle
-		// 2: charging
-		// 3: discharging
+		// 2: discharging
+		// 3: charging
 		// 4: error
 		REQUEST_RELAY_STATE(Doc.of(INTEGER) //
 				.accessMode(WRITE_ONLY) //
-				.text("Set requested contactor sequence. 0=none, 1=idle, 2=charge, 3=discharge, 4=error")),
+				.text("Set requested contactor sequence. 0=none, 1=idle, 2=discharge, 3=charge, 4=error")),
 		RELAY_SEQUENCE(Doc.of(INTEGER) //
 				.accessMode(READ_ONLY) //
-				.text("Current Relay State. 0=none, 1=idle, 2=charge, 3=discharge, 4=error")),
+				.text("Current Relay State. 0=none, 1=idle, 2=discharge, 3=charge, 4=error")),
+		RELAY_SEQUENCE_COMPLETED(Doc.of(INTEGER)//
+				.accessMode(READ_ONLY)
+				.text("0 = Sequence started but not complete\n"
+						+ "1 = Last relay request sequence is completed")),
 		;
 
 		private final Doc doc;
@@ -66,13 +71,23 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 //	}
 
 	/**
-	 * Awake/sleep channel.
+	 * Request Relay State channel.
 	 * 
-	 * @return Channel
+	 * @return Request Relay State Channel
 	 *
 	 */
 	public default Channel<Integer> getRelayRequestStateChannel() {
 		return this.channel(ChannelId.REQUEST_RELAY_STATE);
+	}
+	
+	/**
+	 * Get the Relay Sequence Completed channel.
+	 * 
+	 * @return Relay Sequence Completed channel
+	 * 
+	 */
+	public default Channel<Integer> getRelaySequenceCompletedChannel(){
+		return this.channel(ChannelId.RELAY_SEQUENCE_COMPLETED);
 	}
 	
 	/**
@@ -85,8 +100,10 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 	
 	/**
 	 * Deadband [W] around 0 for direction decision. Default 300 W.
+	 * 
 	 */
 	public default int getDeadbandW() {
 		return 300;
 	}
+	
 }

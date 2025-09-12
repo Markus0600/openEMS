@@ -2,10 +2,9 @@ package io.openems.edge.battery.sensatabms;
 
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_MINUS_2;
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_3;
+import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.KEEP_POSITIVE;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-																						 
+import java.util.concurrent.atomic.AtomicReference;	
 
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
@@ -21,18 +20,19 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.event.propertytypes.EventTopics;
 import org.osgi.service.metatype.annotations.Designate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-															
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;		
+
 import io.openems.common.exceptions.OpenemsException;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.types.ChannelAddress;
-																	   
+
 import io.openems.edge.battery.api.Battery;
 import io.openems.edge.battery.sensatabms.statemachine.Context;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
+
 import io.openems.edge.bridge.modbus.api.AbstractOpenemsModbusComponent;
 import io.openems.edge.bridge.modbus.api.BridgeModbus;
 import io.openems.edge.bridge.modbus.api.ModbusComponent;
@@ -40,20 +40,15 @@ import io.openems.edge.bridge.modbus.api.ModbusProtocol;
 import io.openems.edge.bridge.modbus.api.element.FloatDoublewordElement;
 import io.openems.edge.bridge.modbus.api.element.FloatQuadruplewordElement;
 import io.openems.edge.bridge.modbus.api.element.SignedWordElement;
-import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;
-																		   
-																		
-																 
+import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;														 
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC6WriteRegisterTask;
+
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
-import io.openems.edge.common.component.ComponentManager;
-														  
-														 
+import io.openems.edge.common.component.ComponentManager;														 
 import io.openems.edge.common.component.OpenemsComponent;
-import io.openems.edge.common.event.EdgeEventConstants;
-												   
+import io.openems.edge.common.event.EdgeEventConstants;												   
 import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.startstop.StartStoppable;
 import io.openems.edge.common.taskmanager.Priority;
@@ -89,6 +84,11 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	 * Manages the {@link State}s of the StateMachine.
 	 */
 	private final StateMachine stateMachine = new StateMachine(State.UNDEFINED);
+	
+	/**
+	 * Persistenter Context für die StateMachine - vermeidet Zustandsverlust zwischen Zyklen
+	 */
+	private Context persistentContext = null;
 
 	private final AtomicReference<StartStop> startStopTarget = new AtomicReference<>(StartStop.UNDEFINED);
 
@@ -133,6 +133,9 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			this.log.error("Failed to set relay to IDLE on deactivate: " + e.getMessage(), e);
 
 		}
+		
+		// Reset persistentContext on deactivation
+		this.persistentContext = null;
 	}
 
 	// Modbus addresses used for communication with Sensata BMS - read only
@@ -145,9 +148,10 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private static final int MIN_CELL_VOLTAGE = 180; // min cell voltage, Sensata ID 10405
 	private static final int MAX_CELL_VOLTAGE = 190; // max cell voltage, Sensata ID 10406
 	private static final int VOLTAGE = 200; // cmu - sum of cell voltage, Sensata ID 11400
-	private static final int LOGGED_CELL_TEMP_MIN = 210;
-	private static final int LOGGED_CELL_TEMP_MAX = 220;
+	private static final int MIN_CELL_TEMPERATURE = 210;
+	private static final int MAX_CELL_TEMPERATURE = 220;
 	private static final int RELAY_SEQUENCE = 230;
+	private static final int RELAY_SEQUENCE_COMPLETED = 240;
 
 	// Modbus addresses used for communication with Sensata BMS - write only
 	private static final int REQUEST_RELAY_STATE = 100;
@@ -170,10 +174,13 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 						Priority.LOW, //
 						m(Battery.ChannelId.CHARGE_MAX_CURRENT, new FloatQuadruplewordElement(CHARGE_MAX_CURRENT)) //
 				), //
+
+				
+				//ToDo: Check if values for Discharge current stay positive
 				new FC3ReadRegistersTask(//
 						DISCHARGE_MAX_CURRENT, //
 						Priority.LOW, //
-						m(Battery.ChannelId.DISCHARGE_MAX_CURRENT, new FloatQuadruplewordElement(DISCHARGE_MAX_CURRENT)) //
+						m(Battery.ChannelId.DISCHARGE_MAX_CURRENT, new FloatQuadruplewordElement(DISCHARGE_MAX_CURRENT), KEEP_POSITIVE) //
 				), //
 				new FC3ReadRegistersTask(//
 						SOC, //
@@ -206,19 +213,26 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 						m(Battery.ChannelId.VOLTAGE, new FloatQuadruplewordElement(VOLTAGE)) //
 				), //
 				new FC3ReadRegistersTask(//
-						LOGGED_CELL_TEMP_MIN, //
+						MIN_CELL_TEMPERATURE, //
 						Priority.LOW, //
-						m(Battery.ChannelId.MIN_CELL_TEMPERATURE, new FloatQuadruplewordElement(LOGGED_CELL_TEMP_MIN)) //
+						m(Battery.ChannelId.MIN_CELL_TEMPERATURE, new FloatQuadruplewordElement(MIN_CELL_TEMPERATURE)) //
 				), //
 				new FC3ReadRegistersTask(//
-						LOGGED_CELL_TEMP_MAX, //
+						MAX_CELL_TEMPERATURE, //
 						Priority.LOW, //
-						m(Battery.ChannelId.MAX_CELL_TEMPERATURE, new FloatQuadruplewordElement(LOGGED_CELL_TEMP_MAX)) //
+						m(Battery.ChannelId.MAX_CELL_TEMPERATURE, new FloatQuadruplewordElement(MAX_CELL_TEMPERATURE)) //
 				), //
+				
+				// Values required for Sensata itself - read only
 				new FC3ReadRegistersTask(//
 						RELAY_SEQUENCE, //
 						Priority.LOW, //
 						m(SensataBms.ChannelId.RELAY_SEQUENCE, new UnsignedWordElement(RELAY_SEQUENCE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						RELAY_SEQUENCE_COMPLETED, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.RELAY_SEQUENCE_COMPLETED, new UnsignedWordElement(RELAY_SEQUENCE_COMPLETED)) //
 				), //
 
 				// Values required for Sensata itself - write only
@@ -277,35 +291,32 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	 * Handles the State-Machine.
 	 */
 	private void handleStateMachine() {
-		// WICHTIG: Nicht global auf UNDEFINED zurücksetzen – die Handler setzen
-		// Start/Stop gezielt je nach Zustand.
-
-									
-		// this._setStartStop(StartStop.UNDEFINED);
-
-					
+		
 		IntegerWriteChannel requestRelayState = null;
 		IntegerReadChannel relaySequence = null;
+		IntegerReadChannel relaySequenceCompleted = null;
 		try {
 			requestRelayState = this.channel(SensataBms.ChannelId.REQUEST_RELAY_STATE);
 			relaySequence = this.channel(SensataBms.ChannelId.RELAY_SEQUENCE);
-		} catch (IllegalArgumentException e1) {
-							 
+			relaySequenceCompleted = this.channel(SensataBms.ChannelId.RELAY_SEQUENCE_COMPLETED);
+			
+		} catch (IllegalArgumentException e1) {						 
 			this.logError(this.log, "Setting requestRelayState/relaySequence channels failed: " + e1.getMessage());
-						
+			return;
 		}
 
-		var context = new Context(this, requestRelayState, relaySequence);
-
+		//Context nur einmal erstellen und danach wiederverwenden
+		if(this.persistentContext == null) {
+			this.persistentContext = new Context(this, requestRelayState, relaySequence, relaySequenceCompleted);
+			this.log.info("Created persistent context for Statemachine");
+		}
+		
 		try {
-																		  
-			this.stateMachine.run(context);
-																						
+			//Statemachine mit dem bestehenden Context ausführen
+			this.stateMachine.run(this.persistentContext);
 		} catch (OpenemsNamedException e) {
-																					   
 			this.logError(this.log, "StateMachine failed: " + e.getMessage());
 		}
-
 	}
 
 
@@ -327,9 +338,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		return switch (this.config.startStop()) {
 			case AUTO -> this.startStopTarget.get(); // read StartStop-Channel
 			case START -> StartStop.START; // force START
-			case STOP -> StartStop.STOP; // force STOP
-			  
-											   
+			case STOP -> StartStop.STOP; // force STOP							   
 			default -> StartStop.UNDEFINED;
 	
 		};
@@ -356,9 +365,11 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				+ this.channel(Battery.ChannelId.CURRENT).value().asString() + " min_Vc: "
 				+ this.channel(Battery.ChannelId.MIN_CELL_VOLTAGE).value().asString() + " max_Vc: "
 				+ this.channel(Battery.ChannelId.MAX_CELL_VOLTAGE).value().asString() + " V: "
-				+ this.channel(Battery.ChannelId.VOLTAGE).value().asString() + "°C:"
-				+this.channel(Battery.ChannelId.MAX_CELL_TEMPERATURE).value().asString() +"°C:"
-				+this.channel(Battery.ChannelId.MIN_CELL_TEMPERATURE).value().asString();
+				+ this.channel(Battery.ChannelId.VOLTAGE).value().asString() + " max_Temp: "
+				+ this.channel(Battery.ChannelId.MAX_CELL_TEMPERATURE).value().asString() +" min_Temp: "
+				+ this.channel(Battery.ChannelId.MIN_CELL_TEMPERATURE).value().asString() +" act State: "
+				+ this.channel(SensataBms.ChannelId.RELAY_SEQUENCE).value().asString();	
+				
 	}
  
 		   

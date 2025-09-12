@@ -14,20 +14,22 @@ public class Context extends AbstractContext<SensataBms> {
 
 	protected final IntegerWriteChannel RequestRelayState;
 	protected final IntegerReadChannel RelaySequence;
+	protected final IntegerReadChannel RelaySequenceCompleted; //new for robust statemachine go-running 
 	protected Status currentRelayState;
 	
 	private final Logger log = LoggerFactory.getLogger(Context.class);
 
-	public Context(SensataBms parent, IntegerWriteChannel RequestRelayState, IntegerReadChannel RelaySequence) {
+	public Context(SensataBms parent, IntegerWriteChannel RequestRelayState, IntegerReadChannel RelaySequence, IntegerReadChannel RelaySequenceCompleted) {
 		super(parent);
 		this.RequestRelayState = RequestRelayState;
 		this.RelaySequence = RelaySequence;
-		this.currentRelayState = Status.UNDEFINED;
+		this.RelaySequenceCompleted = RelaySequenceCompleted;
+//		this.currentRelayState = Status.UNDEFINED;
 	}
 	
 	public void setRequestRelayState(Status requestRelayState) throws OpenemsNamedException {
 		
-		this.log.info("Context::setRequestRelayState trying to set relay to state " + requestRelayState.toString() + ". Current state: " + currentRelayState.toString());
+		this.log.info("Context::setRequestRelayState trying to set relay to state " + requestRelayState.toString());
 		
 		// Null pointer check
 		if (this.RequestRelayState == null) {
@@ -62,8 +64,8 @@ public class Context extends AbstractContext<SensataBms> {
 	}
 	
     public Status getRequestRelayState() {
-        return(this.currentRelayState);
-}
+        return this.currentRelayState;
+    }
 
     public int getRelaySequence() {
         if (this.RelaySequence == null) {
@@ -74,6 +76,18 @@ public class Context extends AbstractContext<SensataBms> {
                 return value.get();
         }
         return Status.UNDEFINED.getValue();
-}
+    }
+    
+    // Neue Methode zum Abfragen des Sequence-Completed-Status
+    public boolean isRelaySequenceCompleted() {
+        if (this.RelaySequenceCompleted == null) {
+            return false;
+        }
+        var value = this.RelaySequenceCompleted.value();
+        if (value.isDefined()) {
+            return value.get() == 1; // 1 bedeutet "abgeschlossen"
+        }
+        return false;
+    }
 
 }

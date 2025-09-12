@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
-import io.openems.edge.battery.sensatabms.SensataBms;
+//import io.openems.edge.battery.sensatabms.SensataBms;
 import io.openems.edge.battery.sensatabms.Status;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
 import io.openems.edge.common.startstop.StartStop;
@@ -45,11 +45,14 @@ public class GoRunningHandler extends StateHandler<State, Context> {
 		if (rs == Status.IDLE.getValue()) {
 			context.setRequestRelayState(Status.DISCHARGE);
 			this.log.info("BMS reports IDLE, requesting DISCHARGE for precharge - transitioning to RUNNING");
+		}
+		if (rs == Status.DISCHARGE.getValue() && context.isRelaySequenceCompleted()) {
+			this.log.info("Discharge active and sequence completed, transitioning to RUNNING");
 			return State.RUNNING;
 		}
 		
 		// Still waiting for BMS to reach IDLE state
-		this.log.debug("Waiting for BMS to reach IDLE state (current: {})", rs);
+		this.log.debug("Waiting for BMS to reach IDLE state (current: {})", rs, context.isRelaySequenceCompleted());
 		return State.GO_RUNNING;
 	}
 }

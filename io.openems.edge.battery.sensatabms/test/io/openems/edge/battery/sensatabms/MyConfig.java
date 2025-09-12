@@ -108,30 +108,5 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 	public StartStopConfig startStop() {
 		return this.builder.startStop;
 	}
-
-	@Override
-	public int disChargeMinVoltage() {
-		return this.builder.disChargeMinVoltage;
-	}
-
-	@Override
-	public int chargeMaxVoltage() {
-		return this.builder.chargeMaxVoltage;
-	}
-
-	@Override
-	public int innerResistance() {
-		return this.builder.innerResistance;
-	}
-
-	@Override
-	public int minCellTemperature() {
-		return this.builder.minCellTemperature;
-	}
-
-	@Override
-	public int maxCellTemperature() {
-		return this.builder.maxCellTemperature;
-	}
 	
 }
