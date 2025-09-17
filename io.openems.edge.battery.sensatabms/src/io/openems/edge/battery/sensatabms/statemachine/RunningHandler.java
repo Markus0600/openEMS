@@ -44,7 +44,8 @@ public class RunningHandler extends StateHandler<State, Context> {
 		int p = ((SensataBms) battery).getLatestEssSetpointW();
 		this.log.info("Latest Setpoint from ESS {}", p);
 //		int db = ((SensataBms) battery).getDeadbandW();
-		Status desired = ((p < 0) ? Status.CHARGE : Status.DISCHARGE);
+		Status desired = Status.DISCHARGE;
+//		Status desired = ((p < 0) ? Status.CHARGE : Status.DISCHARGE);
 //		Status desired = (Math.abs(p) <= db) ? Status.IDLE : ((p < 0) ? Status.CHARGE : Status.DISCHARGE);
 
 		// Update relay state if needed (IDLE transition handled by GO_STOPPED when STOP requested)

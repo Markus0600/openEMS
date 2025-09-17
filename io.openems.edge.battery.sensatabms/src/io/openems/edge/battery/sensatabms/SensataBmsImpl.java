@@ -2,7 +2,7 @@ package io.openems.edge.battery.sensatabms;
 
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_MINUS_2;
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_3;
-import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.KEEP_POSITIVE;
+import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.INVERT;
 
 import java.util.concurrent.atomic.AtomicReference;	
 
@@ -180,7 +180,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				new FC3ReadRegistersTask(//
 						DISCHARGE_MAX_CURRENT, //
 						Priority.LOW, //
-						m(Battery.ChannelId.DISCHARGE_MAX_CURRENT, new FloatQuadruplewordElement(DISCHARGE_MAX_CURRENT), KEEP_POSITIVE) //
+						m(Battery.ChannelId.DISCHARGE_MAX_CURRENT, new FloatQuadruplewordElement(DISCHARGE_MAX_CURRENT), INVERT) //
 				), //
 				new FC3ReadRegistersTask(//
 						SOC, //
@@ -366,10 +366,10 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				+ this.channel(Battery.ChannelId.MIN_CELL_VOLTAGE).value().asString() + " max_Vc: "
 				+ this.channel(Battery.ChannelId.MAX_CELL_VOLTAGE).value().asString() + " V: "
 				+ this.channel(Battery.ChannelId.VOLTAGE).value().asString() + " max_Temp: "
-				+ this.channel(Battery.ChannelId.MAX_CELL_TEMPERATURE).value().asString() +" min_Temp: "
-				+ this.channel(Battery.ChannelId.MIN_CELL_TEMPERATURE).value().asString() +" act State: "
-				+ this.channel(SensataBms.ChannelId.RELAY_SEQUENCE).value().asString();	
-				
+				+ this.channel(Battery.ChannelId.MAX_CELL_TEMPERATURE).value().asString() + " min_Temp: "
+				+ this.channel(Battery.ChannelId.MIN_CELL_TEMPERATURE).value().asString() + " act State: "
+				+ this.channel(SensataBms.ChannelId.RELAY_SEQUENCE).value().asString() + " Sequence completed: "
+				+this.channel(SensataBms.ChannelId.RELAY_SEQUENCE_COMPLETED).value().asString();			
 	}
  
 		   
