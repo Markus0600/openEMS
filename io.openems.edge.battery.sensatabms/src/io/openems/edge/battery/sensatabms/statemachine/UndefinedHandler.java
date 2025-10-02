@@ -1,6 +1,6 @@
 package io.openems.edge.battery.sensatabms.statemachine;
 
-import java.time.Instant;
+//import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,13 +13,13 @@ import io.openems.edge.common.statemachine.StateHandler;
 
 public class UndefinedHandler extends StateHandler<State, Context> {
 
-	private Instant entryAt = Instant.MIN;
+//	private Instant entryAt = Instant.MIN;
 
 	private final Logger log = LoggerFactory.getLogger(UndefinedHandler.class);
 
 	@Override
 	protected void onEntry(Context context) throws OpenemsNamedException {
-		this.entryAt = Instant.now();
+//		this.entryAt = Instant.now();
 		this.log.info("Entering UNDEFINED state - battery in safe resting state");
 		
 		var battery = context.getParent();

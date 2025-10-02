@@ -50,7 +50,7 @@ public class BatteryProtectionDefinition implements io.openems.edge.battery.prot
 
 	@Override
 	public Double getMaxIncreaseAmperePerSecond() {
-		return Double.MAX_VALUE; // [A] per second
+		return 20.0; // [A] per second
 	}
 
 	@Override

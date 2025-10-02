@@ -24,7 +24,7 @@ public class Context extends AbstractContext<SensataBms> {
 		this.RequestRelayState = RequestRelayState;
 		this.RelaySequence = RelaySequence;
 		this.RelaySequenceCompleted = RelaySequenceCompleted;
-//		this.currentRelayState = Status.UNDEFINED;
+		this.currentRelayState = Status.UNDEFINED;
 	}
 	
 	public void setRequestRelayState(Status requestRelayState) throws OpenemsNamedException {
@@ -42,8 +42,8 @@ public class Context extends AbstractContext<SensataBms> {
 		if(
 				(requestRelayState != Status.UNDEFINED)
 				&& (requestRelayState != Status.IDLE)
-				&& (requestRelayState != Status.CHARGE)
-				&& (requestRelayState != Status.DISCHARGE)
+				&& (requestRelayState != Status.PRECHARGE)
+				&& (requestRelayState != Status.POWER_ON)
 				&& (requestRelayState != Status.ERROR)
 				)
 		{

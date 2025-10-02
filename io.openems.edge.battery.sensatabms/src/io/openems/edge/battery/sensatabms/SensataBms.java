@@ -1,36 +1,76 @@
 package io.openems.edge.battery.sensatabms;
 
-import static io.openems.common.channel.AccessMode.READ_ONLY;
-import static io.openems.common.channel.AccessMode.WRITE_ONLY;
+
 import static io.openems.common.types.OpenemsType.INTEGER;
 
+//import io.openems.common.types.OpenemsType;
 import io.openems.edge.battery.api.Battery;
 import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.startstop.StartStoppable;
+
+import io.openems.common.channel.AccessMode;
+import io.openems.common.channel.Level;
+import io.openems.common.channel.Unit;
 //import io.openems.edge.battery.sensatabms.Status;
 
 public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
-		// Channel for contactor control via Modbus / CAN. Possible values according to Sensata documentation:
-		// 0: Undefined
-		// 1: Idle
-		// 2: discharging
-		// 3: charging
-		// 4: error
+		
+		//Write channels from Sensata
 		REQUEST_RELAY_STATE(Doc.of(INTEGER) //
-				.accessMode(WRITE_ONLY) //
+				.accessMode(AccessMode.WRITE_ONLY) //
+				.unit(Unit.NONE) //
 				.text("Set requested contactor sequence. 0=none, 1=idle, 2=discharge, 3=charge, 4=error")),
+		HEART_BEAT(Doc.of(INTEGER) //
+				.accessMode(AccessMode.WRITE_ONLY) //
+				.unit(Unit.NONE)), //
+		PARALLEL_PACK_REQUEST(Doc.of(INTEGER) //
+				.accessMode(AccessMode.WRITE_ONLY) //
+				.unit(Unit.NONE)), //
+		INHIBIT_BALANCING(Doc.of(INTEGER) //
+				.accessMode(AccessMode.WRITE_ONLY) //
+				.unit(Unit.NONE)), //
+		
+		//READ only channels from Sensata
 		RELAY_SEQUENCE(Doc.of(INTEGER) //
-				.accessMode(READ_ONLY) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.unit(Unit.NONE) //
 				.text("Current Relay State. 0=none, 1=idle, 2=discharge, 3=charge, 4=error")),
 		RELAY_SEQUENCE_COMPLETED(Doc.of(INTEGER)//
-				.accessMode(READ_ONLY)
+				.accessMode(AccessMode.READ_ONLY)
+				.unit(Unit.NONE)//
 				.text("0 = Sequence started but not complete\n"
 						+ "1 = Last relay request sequence is completed")),
+		
+		//Warnings from BMS
+		CELL_OVER_VOLTAGE(Doc.of(Level.FAULT) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.unit(Unit.NONE)),
+		CELL_UNDER_VOLTAGE(Doc.of(Level.FAULT) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.unit(Unit.NONE)),
+		CELL_OVER_TEMP(Doc.of(Level.FAULT) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.unit(Unit.NONE)),
+		CELL_UNDER_TEMP(Doc.of(Level.FAULT) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.unit(Unit.NONE)),
+		CURRENT_IN_TOO_HIGH(Doc.of(Level.FAULT) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.unit(Unit.NONE)),
+		CURRENT_OUT_TOO_HIGH(Doc.of(Level.FAULT) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.unit(Unit.NONE)),
+		SOA_WARNING(Doc.of(Level.FAULT) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.unit(Unit.NONE)),
+		SOA_VIOLATION(Doc.of(Level.FAULT) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.unit(Unit.NONE)),
 		;
 
 		private final Doc doc;
@@ -104,6 +144,14 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 	 */
 	public default int getDeadbandW() {
 		return 300;
+	}
+	
+	/**
+	 * Get the Channel for Inhibit Balancing. Return false if not provided by the implementation
+	 * 
+	 */
+	public default boolean getEnableBalancing() {
+		return false;
 	}
 	
 }

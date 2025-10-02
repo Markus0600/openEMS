@@ -7,7 +7,7 @@ import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 //import io.openems.edge.battery.sensatabms.SensataBms;
 import io.openems.edge.battery.sensatabms.Status;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
-import io.openems.edge.common.startstop.StartStop;
+//import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.statemachine.StateHandler;
 
 public class GoRunningHandler extends StateHandler<State, Context> {
@@ -17,36 +17,30 @@ public class GoRunningHandler extends StateHandler<State, Context> {
 	@Override
 	protected void onEntry(Context context) throws OpenemsNamedException {
 		this.log.info("Entering GO_RUNNING state - preparing battery for operation");
-		var battery = context.getParent();
+//		var battery = context.getParent();
 		
-		// Ensure battery is set to START when entering GO_RUNNING
-		battery._setStartStop(StartStop.START);
+//		// Ensure battery is set to START when entering GO_RUNNING
+//		battery._setStartStop(StartStop.START);
 	}
 
 	@Override
 	public State runAndGetNextState(Context context) throws OpenemsNamedException {
 		var battery = context.getParent();
+		int rs = context.getRelaySequence();
+		this.log.info("Current relay sequence from BMS: {}", rs);
 
 		// Check for faults - safety first
-		if (battery.hasFaults()) {
+		if (battery.hasFaults() || rs == Status.ERROR.getValue()) {
 			this.log.warn("Faults detected during GO_RUNNING, transitioning to ERROR");
 			return State.ERROR;
 		}
 
-		// Ensure battery is actively starting
-		if (!battery.isStarted()) {
-			battery._setStartStop(StartStop.START);
-		}
-
-		// Wenn BMS IDLE meldet aktiviere Discharge für Precharge -> RUNNING
-		int rs = context.getRelaySequence();
-		this.log.info("Current relay sequence from BMS: {}", rs);
-		
+		// Wenn BMS IDLE meldet aktiviere Relais
 		if (rs == Status.IDLE.getValue()) {
-			context.setRequestRelayState(Status.DISCHARGE);
-			this.log.info("BMS reports IDLE, requesting DISCHARGE for precharge - transitioning to RUNNING");
+			context.setRequestRelayState(Status.POWER_ON);
+			this.log.info("BMS reports IDLE, requesting PRECHARGE - transitioning to RUNNING");
 		}
-		if (rs == Status.DISCHARGE.getValue() && context.isRelaySequenceCompleted()) {
+		if (rs == Status.POWER_ON.getValue() && context.isRelaySequenceCompleted()) {
 			this.log.info("Discharge active and sequence completed, transitioning to RUNNING");
 			return State.RUNNING;
 		}

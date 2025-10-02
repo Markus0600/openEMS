@@ -4,8 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
-import io.openems.edge.battery.sensatabms.SensataBms;
-import io.openems.edge.battery.sensatabms.Status;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
 import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.statemachine.StateHandler;
@@ -26,37 +24,22 @@ public class RunningHandler extends StateHandler<State, Context> {
 	}
 
 	@Override
-	public State runAndGetNextState(Context context) {
+	public State runAndGetNextState(Context context) throws OpenemsNamedException {
 		var battery = context.getParent();
 
-		// Ensure battery stays started during operation
-		if (!battery.isStarted()) {
-			battery._setStartStop(StartStop.START);
-		}
 
 		// Check for faults - safety first
 		if (battery.hasFaults()) {
 			this.log.warn("Faults detected during RUNNING, transitioning to ERROR");
 			return State.ERROR;
 		}
-
-		// Dynamic relay control based on ESS setpoint
-		int p = ((SensataBms) battery).getLatestEssSetpointW();
-		this.log.info("Latest Setpoint from ESS {}", p);
-//		int db = ((SensataBms) battery).getDeadbandW();
-		Status desired = ((p < 0) ? Status.CHARGE : Status.DISCHARGE);
-//		Status desired = (Math.abs(p) <= db) ? Status.IDLE : ((p < 0) ? Status.CHARGE : Status.DISCHARGE);
-
-		// Update relay state if needed (IDLE transition handled by GO_STOPPED when STOP requested)
-		if (context.getRequestRelayState() != desired) {
-			try {
-				context.setRequestRelayState(desired);
-				this.log.debug("Updated relay state to {} based on setpoint {}W", desired, p);
-			} catch (Exception e) {
-				this.log.debug("Could not set relay state to {} this cycle. Will retry next cycle.", desired);
-			}
+		
+		
+		// Ensure battery stays started during operation
+		if (!battery.isStarted()) {
+			battery._setStartStop(StartStop.START); 
 		}
-
+			
 		// Check if stop is requested
 		return switch (battery.getStartStopTarget()) {
 			case STOP -> {
@@ -65,7 +48,6 @@ public class RunningHandler extends StateHandler<State, Context> {
 			}
 			default ->  {
 				this.log.info("Entered Running");
-				this.log.info("Actual Requested Relay State to BMS: {}", desired);
 				yield State.RUNNING;
 			}
 		};

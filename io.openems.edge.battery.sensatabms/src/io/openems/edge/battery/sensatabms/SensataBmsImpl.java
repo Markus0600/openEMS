@@ -2,7 +2,7 @@ package io.openems.edge.battery.sensatabms;
 
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_MINUS_2;
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_3;
-import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.KEEP_POSITIVE;
+import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.INVERT;
 
 import java.util.concurrent.atomic.AtomicReference;	
 
@@ -44,7 +44,7 @@ import io.openems.edge.bridge.modbus.api.element.SignedWordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;														 
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC6WriteRegisterTask;
-import io.openems.edge.common.channel.Channel;
+//import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.component.ComponentManager;														 
@@ -63,7 +63,8 @@ import io.openems.edge.common.taskmanager.Priority;
 		configurationPolicy = ConfigurationPolicy.REQUIRE //
 )
 @EventTopics({ //
-		EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE //
+		EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE, //
+		EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE, //
 })
 public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		implements SensataBms, Battery, ModbusComponent, OpenemsComponent, EventHandler, StartStoppable {
@@ -71,10 +72,16 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private Config config = null;
 	private final Logger log = LoggerFactory.getLogger(SensataBmsImpl.class);
 	private BatteryProtection batteryProtection = null;
+	
+	//Heart Beat for Sensata BMS Keep Alive
+	private static final int DEFAULT_HEART_BEAT = 1;
+	
+	private boolean enableBalancing = false;
+	
+//	private static final int DEADBAND = 0;
 
 	// ESS setpoint tracking
 	private volatile int latestEssSetpoint = 0;
-	private static final int DEADBAND = 300;
 
 	@Reference
 	private ConfigurationAdmin cm;
@@ -86,11 +93,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	 * Manages the {@link State}s of the StateMachine.
 	 */
 	private final StateMachine stateMachine = new StateMachine(State.UNDEFINED);
-	
-	/**
-	 * Persistenter Context für die StateMachine - vermeidet Zustandsverlust zwischen Zyklen
-	 */
-	private Context persistentContext = null;
 
 	private final AtomicReference<StartStop> startStopTarget = new AtomicReference<>(StartStop.UNDEFINED);
 
@@ -118,7 +120,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			return;
 		}
 		this.config = config;
-		
+		this.enableBalancing = config.enable_balancing();
 	    this.batteryProtection = BatteryProtection.create(this) //
 	            .applyBatteryProtectionDefinition(new BatteryProtectionDefinition(), this.componentManager) //
 	            .build();
@@ -141,27 +143,40 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 
 		}
 		
-		// Reset persistentContext on deactivation
-		this.persistentContext = null;
 	}
 
 	// Modbus addresses used for communication with Sensata BMS - read only
-	private static final int CAPACITY = 100; // remaining capacity, Sensata ID 45000
-	private static final int CHARGE_MAX_CURRENT = 110; // max. charge current, Sensata ID 45004
-	private static final int DISCHARGE_MAX_CURRENT = 120; // max. discharge current, Sensata ID 45005
-	private static final int SOC = 140; // state of charge, Sensata ID 45015
-	private static final int SOH = 160; // state of health, Sensata ID 45045
-	private static final int CURRENT = 170; // pack current, Sensata ID 547
-	private static final int MIN_CELL_VOLTAGE = 180; // min cell voltage, Sensata ID 10405
-	private static final int MAX_CELL_VOLTAGE = 190; // max cell voltage, Sensata ID 10406
-	private static final int VOLTAGE = 200; // cmu - sum of cell voltage, Sensata ID 11400
-	private static final int MIN_CELL_TEMPERATURE = 210;
-	private static final int MAX_CELL_TEMPERATURE = 220;
-	private static final int RELAY_SEQUENCE = 230;
-	private static final int RELAY_SEQUENCE_COMPLETED = 240;
-
+	private static final int CAPACITY 					= 100; // remaining capacity -			Sensata ID 45000
+	private static final int CHARGE_MAX_CURRENT 		= 110; // max. charge current -			Sensata ID 45004
+	private static final int DISCHARGE_MAX_CURRENT 		= 120; // max. discharge current -		Sensata ID 45005
+	private static final int SOC 						= 140; // state of charge -				Sensata ID 45015
+	private static final int SOH 						= 160; // state of health -				Sensata ID 45045
+	private static final int CURRENT 					= 170; // pack current -				Sensata ID 547
+	private static final int MIN_CELL_VOLTAGE 			= 180; // min cell voltage -			Sensata ID 10405
+	private static final int MAX_CELL_VOLTAGE 			= 190; // max cell voltage -			Sensata ID 10406
+	private static final int VOLTAGE 					= 200; // Battery voltage -				Sensata ID 10205
+	private static final int MIN_CELL_TEMPERATURE 		= 210;
+	private static final int MAX_CELL_TEMPERATURE 		= 220;
+	private static final int RELAY_SEQUENCE 			= 230;
+	private static final int RELAY_SEQUENCE_COMPLETED 	= 240;
+	
+	//Warnings form BMS - read only
+	private static final int CELL_OVER_VOLTAGE			= 250; //Cell over voltage warning - 	Sensata ID 46135 (Alarm State ID 1)
+	private static final int CELL_UNDER_VOLTAGE			= 251; //Cell under voltage warning - 	Sensata ID 46136 (Alarm State ID 2)
+	private static final int CELL_OVER_TEMP				= 252; //Cell over temp warning - 		Sensata ID 46137 (Alarm State ID 3)
+	private static final int CELL_UNDER_TEMP				= 253; //Cell over temp warning - 		Sensata ID 46138 (Alarm State ID 4)
+	private static final int CURRENT_IN_TOO_HIGH		= 254; //current in to high warning - 	Sensata ID 46139 (Alarm State ID 5)
+	private static final int CURRENT_OUT_TOO_HIGH		= 255; //current out to high warning - 	Sensata ID 46140 (Alarm State ID 6)
+	private static final int SOA_WARNING				= 256; //SOA warning - 					Sensata ID 46141 (Alarm State ID 7)
+	private static final int SOA_VIOLATION				= 256; //SOA violation - 				Sensata ID 46142 (Alarm State ID 8)
+		
 	// Modbus addresses used for communication with Sensata BMS - write only
-	private static final int REQUEST_RELAY_STATE = 100;
+	private static final int REQUEST_RELAY_STATE 		= 100;
+	private static final int INHIBIT_BALANCING			= 120;
+	private static final int HEART_BEAT 				= 150;
+	
+	//for parallel mode
+	private static final int PARALLEL_PACK_REQUEST 		= 400;
 
 	@Override
 	protected ModbusProtocol defineModbusProtocol() {
@@ -179,15 +194,13 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				new FC3ReadRegistersTask(//
 						CHARGE_MAX_CURRENT, //
 						Priority.LOW, //
-						m(Battery.ChannelId.CHARGE_MAX_CURRENT, new FloatQuadruplewordElement(CHARGE_MAX_CURRENT)) //
+						m(BatteryProtection.ChannelId.BP_CHARGE_BMS, new FloatQuadruplewordElement(CHARGE_MAX_CURRENT)) //
 				), //
 
-				
-				//ToDo: Check if values for Discharge current stay positive
 				new FC3ReadRegistersTask(//
 						DISCHARGE_MAX_CURRENT, //
 						Priority.LOW, //
-						m(Battery.ChannelId.DISCHARGE_MAX_CURRENT, new FloatQuadruplewordElement(DISCHARGE_MAX_CURRENT), KEEP_POSITIVE) //
+						m(BatteryProtection.ChannelId.BP_DISCHARGE_BMS, new FloatQuadruplewordElement(DISCHARGE_MAX_CURRENT), INVERT) //
 				), //
 				new FC3ReadRegistersTask(//
 						SOC, //
@@ -241,11 +254,75 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 						Priority.LOW, //
 						m(SensataBms.ChannelId.RELAY_SEQUENCE_COMPLETED, new UnsignedWordElement(RELAY_SEQUENCE_COMPLETED)) //
 				), //
+				
+				//values required for battery diagnostics / fault handling
+				new FC3ReadRegistersTask(//
+						CELL_OVER_VOLTAGE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.CELL_OVER_VOLTAGE, new UnsignedWordElement(CELL_OVER_VOLTAGE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						CELL_OVER_VOLTAGE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.CELL_OVER_VOLTAGE, new UnsignedWordElement(CELL_OVER_VOLTAGE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						CELL_UNDER_VOLTAGE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.CELL_UNDER_VOLTAGE, new UnsignedWordElement(CELL_UNDER_VOLTAGE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						CELL_OVER_TEMP, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.CELL_OVER_TEMP, new UnsignedWordElement(CELL_OVER_TEMP)) //
+				), //
+				new FC3ReadRegistersTask(//
+						CELL_UNDER_TEMP, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.CELL_UNDER_TEMP, new UnsignedWordElement(CELL_UNDER_TEMP)) //
+				), //
+				new FC3ReadRegistersTask(//
+						CURRENT_IN_TOO_HIGH, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.CURRENT_IN_TOO_HIGH, new UnsignedWordElement(CURRENT_IN_TOO_HIGH)) //
+				), //
+				new FC3ReadRegistersTask(//
+						CURRENT_OUT_TOO_HIGH, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.CURRENT_OUT_TOO_HIGH, new UnsignedWordElement(CURRENT_OUT_TOO_HIGH)) //
+				), //
+				new FC3ReadRegistersTask(//
+						SOA_WARNING, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.SOA_WARNING, new UnsignedWordElement(SOA_WARNING)) //
+				), //
+				new FC3ReadRegistersTask(//
+						SOA_VIOLATION, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.SOA_VIOLATION, new UnsignedWordElement(SOA_VIOLATION)) //
+				), //
 
-				// Values required for Sensata itself - write only
+				
+				// write only
 				new FC6WriteRegisterTask(//
 						REQUEST_RELAY_STATE, //
 						m(SensataBms.ChannelId.REQUEST_RELAY_STATE, new UnsignedWordElement(REQUEST_RELAY_STATE)) //
+				), //
+				
+				new FC6WriteRegisterTask(//
+						INHIBIT_BALANCING, //
+						m(SensataBms.ChannelId.INHIBIT_BALANCING, new UnsignedWordElement(INHIBIT_BALANCING)) //
+				), //
+				
+				new FC6WriteRegisterTask(//
+						HEART_BEAT, //
+						m(SensataBms.ChannelId.HEART_BEAT, new UnsignedWordElement(HEART_BEAT)) //
+				), //
+				
+				//test value for parallel mode
+				new FC6WriteRegisterTask(//
+						PARALLEL_PACK_REQUEST, //
+						m(SensataBms.ChannelId.PARALLEL_PACK_REQUEST, new UnsignedWordElement(PARALLEL_PACK_REQUEST)) //
 				) //
 			 
 		);
@@ -257,29 +334,14 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		if (!this.isEnabled()) {
 			return;
 		}
-							 
-		if (EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE.equals(event.getTopic())) {
-			
-            Integer chargeMaxCurrent = this.getChargeMaxCurrent().orElse(null);
-            if (chargeMaxCurrent != null) {
-                Channel<Integer> bpChargeBmsChannel = this.channel(BatteryProtection.ChannelId.BP_CHARGE_BMS);
-                bpChargeBmsChannel.setNextValue(chargeMaxCurrent);
-            }
-            
-            Integer dischargeMaxCurrent = this.getDischargeMaxCurrent().orElse(null);
-            if (dischargeMaxCurrent != null) {
-                Channel<Integer> bpDischargeBmsChannel = this.channel(BatteryProtection.ChannelId.BP_DISCHARGE_BMS);
-                bpDischargeBmsChannel.setNextValue(dischargeMaxCurrent);
-            }
-	            
-	        if(this.batteryProtection != null) {
-	        	this.batteryProtection.apply();
-	        }
-			
-			// Setpoint pro Zyklus aktualisieren
-			this.updateLatestEssSetpointFromEssChannel();
-			// State-Machine ausführen
+		switch(event.getTopic()) {
+		case EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE:
+			this.batteryProtection.apply();
+			break;
+		case EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE:
 			this.handleStateMachine();
+			this.updateLatestEssSetpointFromEssChannel();
+			this.decisionForChargeDischarge(latestEssSetpoint);
 		}
    
 	}
@@ -310,6 +372,30 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			this.latestEssSetpoint = 0;
 		}
 	}
+	
+	/**
+	 * Decides if Charge or Discharge. 
+	 */
+	
+	private void decisionForChargeDischarge(int powerSetpoint) {
+		
+		powerSetpoint = this.getLatestEssSetpointW();
+		this.log.info("Latest Setpoint from ESS {}", powerSetpoint);
+	
+		ParallelPack desired = ((powerSetpoint < 0)? ParallelPack.CHARGE : ParallelPack.DISCHARGE);
+		
+		IntegerWriteChannel parallelPackRequestRelay = null;
+		
+		try {
+			
+			parallelPackRequestRelay = this.channel(SensataBms.ChannelId.PARALLEL_PACK_REQUEST);
+			parallelPackRequestRelay.setNextWriteValue(desired.getValue());
+			this.log.info("Requestet Relay State: {}", desired);
+			
+			}catch (OpenemsNamedException | IllegalArgumentException e1) {
+			this.logError(this.log, "Could not send Paralle Packs Relay Request" + e1.getMessage());
+		}
+	}
 
 	/**
 	 * Handles the State-Machine.
@@ -317,28 +403,37 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private void handleStateMachine() {
 		
 		IntegerWriteChannel requestRelayState = null;
+		IntegerWriteChannel heartbeatChannel = null;
+		IntegerWriteChannel inhibitBalancingChannel = null;
+		
 		IntegerReadChannel relaySequence = null;
 		IntegerReadChannel relaySequenceCompleted = null;
+
+
 		try {
 			requestRelayState = this.channel(SensataBms.ChannelId.REQUEST_RELAY_STATE);
+			heartbeatChannel = this.channel(SensataBms.ChannelId.HEART_BEAT);
+			inhibitBalancingChannel = this.channel(SensataBms.ChannelId.INHIBIT_BALANCING);
+			
 			relaySequence = this.channel(SensataBms.ChannelId.RELAY_SEQUENCE);
 			relaySequenceCompleted = this.channel(SensataBms.ChannelId.RELAY_SEQUENCE_COMPLETED);
+
 			
-		} catch (IllegalArgumentException e1) {						 
+			heartbeatChannel.setNextWriteValue(DEFAULT_HEART_BEAT);
+			this.logInfo(this.log, "HeartBeat: " + DEFAULT_HEART_BEAT);
+			
+		    inhibitBalancingChannel.setNextWriteValue(this.enableBalancing ? 0 : 1);
+		    this.logInfo(this.log, "Balancing is " + (this.enableBalancing ? "enabled" : "disabled"));
+			
+		} catch (IllegalArgumentException | OpenemsNamedException e1) {						 
 			this.logError(this.log, "Setting requestRelayState/relaySequence channels failed: " + e1.getMessage());
 			return;
 		}
 
-		//Context nur einmal erstellen und danach wiederverwenden
-		if(this.persistentContext == null) {
-			this.persistentContext = new Context(this, requestRelayState, relaySequence, relaySequenceCompleted);
-			this.log.info("Created persistent context for Statemachine");
-		}
-		
-		try {
-			//Statemachine mit dem bestehenden Context ausführen
-			this.stateMachine.run(this.persistentContext);
-		} catch (OpenemsNamedException e) {
+		var context = new Context(this, requestRelayState, relaySequence, relaySequenceCompleted);
+		try {																		  
+			this.stateMachine.run(context);																					
+		} catch (OpenemsNamedException e) {																					   
 			this.logError(this.log, "StateMachine failed: " + e.getMessage());
 		}
 	}
@@ -372,11 +467,16 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	public int getLatestEssSetpointW() {
 		return this.latestEssSetpoint;
 	}
-
+	
 	@Override
-	public int getDeadbandW() {
-		return DEADBAND;
+	public boolean getEnableBalancing() {
+		return this.enableBalancing;
 	}
+
+//	@Override
+//	public int getDeadbandW() {
+//		return DEADBAND;
+//	}
 
 	@Override
 	public String debugLog() {
@@ -392,8 +492,15 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				+ this.channel(Battery.ChannelId.VOLTAGE).value().asString() + " max_Temp: "
 				+ this.channel(Battery.ChannelId.MAX_CELL_TEMPERATURE).value().asString() +" min_Temp: "
 				+ this.channel(Battery.ChannelId.MIN_CELL_TEMPERATURE).value().asString() +" act State: "
-				+ this.channel(SensataBms.ChannelId.RELAY_SEQUENCE).value().asString();	
-				
+				+ this.channel(SensataBms.ChannelId.RELAY_SEQUENCE).value().asString()	+ " COV: "
+				+ this.channel(SensataBms.ChannelId.CELL_OVER_VOLTAGE).value().asString()+ " CUV: "
+				+ this.channel(SensataBms.ChannelId.CELL_UNDER_VOLTAGE).value().asString()+ " COT: "
+				+ this.channel(SensataBms.ChannelId.CELL_OVER_TEMP).value().asString()+ " CUT: "
+				+ this.channel(SensataBms.ChannelId.CELL_UNDER_TEMP).value().asString()+ " CITH: "
+				+ this.channel(SensataBms.ChannelId.CURRENT_IN_TOO_HIGH).value().asString()+ " COTH: "
+				+ this.channel(SensataBms.ChannelId.CURRENT_OUT_TOO_HIGH).value().asString()+ " SOA_Warn: "
+				+ this.channel(SensataBms.ChannelId.SOA_WARNING).value().asString()+ " SOA_Viola: "
+				+ this.channel(SensataBms.ChannelId.SOA_VIOLATION).value().asString(); 
 	}
  
 		   

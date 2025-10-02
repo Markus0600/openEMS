@@ -2,17 +2,15 @@ package io.openems.edge.battery.sensatabms;
 
 import io.openems.common.types.OptionsEnum;
 
-public enum Status implements OptionsEnum {
-	UNDEFINED(0, "Undefined"), //
-	IDLE(1, "Idle"), //
-	PRECHARGE(2, "Precharge - Seq 1"), //
-	POWER_ON(3, "Charge"), //
-	ERROR(4, "Error");
+public enum ParallelPack implements OptionsEnum {
+	IDLE(0, "Idle"), //
+	CHARGE(1, "Charge"), //
+	DISCHARGE(2, "Discharge"); //
 
 	private final int value;
 	private final String name;
 
-	private Status(int value, String name) {
+	private ParallelPack(int value, String name) {
 		this.value = value;
 		this.name = name;
 	}
@@ -33,19 +31,19 @@ public enum Status implements OptionsEnum {
 	 * @param value (int value that represents a Status
 	 * @return Status enum for the value
 	 */
-	public static Status valueOf(int value) {
-		for (Status status : Status.values()) {
+	public static ParallelPack valueOf(int value) {
+		for (ParallelPack status : ParallelPack.values()) {
 			if (status.value == value) {
 				return status;
 			}
 		}
-		return UNDEFINED;
+		return IDLE;
 
 	}
 
 	@Override
 	public OptionsEnum getUndefined() {
-		return UNDEFINED;
+		return IDLE;
 	}
 
 }
