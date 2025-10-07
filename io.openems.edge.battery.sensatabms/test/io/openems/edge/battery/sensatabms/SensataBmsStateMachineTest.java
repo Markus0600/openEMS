@@ -1,6 +1,6 @@
 package io.openems.edge.battery.sensatabms;
 
-import static io.openems.edge.battery.sensatabms.SensataBms.ChannelId.RELAY_SEQUENCE;
+import static io.openems.edge.battery.sensatabms.SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE;
 import static io.openems.edge.battery.sensatabms.statemachine.StateMachine.State.UNDEFINED;
 import static io.openems.edge.battery.sensatabms.statemachine.StateMachine.State.GO_RUNNING;
 import static io.openems.edge.battery.sensatabms.statemachine.StateMachine.State.RUNNING;

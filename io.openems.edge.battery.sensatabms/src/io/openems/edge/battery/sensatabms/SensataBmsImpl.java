@@ -41,7 +41,10 @@ import io.openems.edge.bridge.modbus.api.ModbusProtocol;
 import io.openems.edge.bridge.modbus.api.element.FloatDoublewordElement;
 import io.openems.edge.bridge.modbus.api.element.FloatQuadruplewordElement;
 import io.openems.edge.bridge.modbus.api.element.SignedWordElement;
-import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;														 
+import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;		
+import io.openems.edge.bridge.modbus.api.element.SignedDoublewordElement;																		   
+import io.openems.edge.bridge.modbus.api.element.UnsignedDoublewordElement;	
+
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC6WriteRegisterTask;
 //import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
@@ -135,7 +138,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 
 		// switch off relay if shutdown
 		try {
-			IntegerWriteChannel requestRelayState = this.channel(SensataBms.ChannelId.REQUEST_RELAY_STATE);
+			IntegerWriteChannel requestRelayState = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE);
 			requestRelayState.setNextWriteValue(Status.IDLE.getValue());
 			this.log.info("Relay set to IDLE during deactivation.");
 		} catch (Exception e) {
@@ -146,37 +149,41 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	}
 
 	// Modbus addresses used for communication with Sensata BMS - read only
-	private static final int CAPACITY 					= 100; // remaining capacity -			Sensata ID 45000
-	private static final int CHARGE_MAX_CURRENT 		= 110; // max. charge current -			Sensata ID 45004
-	private static final int DISCHARGE_MAX_CURRENT 		= 120; // max. discharge current -		Sensata ID 45005
-	private static final int SOC 						= 140; // state of charge -				Sensata ID 45015
-	private static final int SOH 						= 160; // state of health -				Sensata ID 45045
-	private static final int CURRENT 					= 170; // pack current -				Sensata ID 547
-	private static final int MIN_CELL_VOLTAGE 			= 180; // min cell voltage -			Sensata ID 10405
-	private static final int MAX_CELL_VOLTAGE 			= 190; // max cell voltage -			Sensata ID 10406
-	private static final int VOLTAGE 					= 200; // Battery voltage -				Sensata ID 10205
-	private static final int MIN_CELL_TEMPERATURE 		= 210;
-	private static final int MAX_CELL_TEMPERATURE 		= 220;
-	private static final int RELAY_SEQUENCE 			= 230;
-	private static final int RELAY_SEQUENCE_COMPLETED 	= 240;
-	
-	//Warnings form BMS - read only
-	private static final int CELL_OVER_VOLTAGE			= 250; //Cell over voltage warning - 	Sensata ID 46135 (Alarm State ID 1)
-	private static final int CELL_UNDER_VOLTAGE			= 251; //Cell under voltage warning - 	Sensata ID 46136 (Alarm State ID 2)
-	private static final int CELL_OVER_TEMP				= 252; //Cell over temp warning - 		Sensata ID 46137 (Alarm State ID 3)
-	private static final int CELL_UNDER_TEMP				= 253; //Cell over temp warning - 		Sensata ID 46138 (Alarm State ID 4)
-	private static final int CURRENT_IN_TOO_HIGH		= 254; //current in to high warning - 	Sensata ID 46139 (Alarm State ID 5)
-	private static final int CURRENT_OUT_TOO_HIGH		= 255; //current out to high warning - 	Sensata ID 46140 (Alarm State ID 6)
-	private static final int SOA_WARNING				= 256; //SOA warning - 					Sensata ID 46141 (Alarm State ID 7)
-	private static final int SOA_VIOLATION				= 256; //SOA violation - 				Sensata ID 46142 (Alarm State ID 8)
+	private static final int PARALLEL_PACKS_STATE = 300;
+	private static final int PARALLEL_PACKS_CURRENTLY_DETECTED_PACKS = 301;
+	private static final int PARALLEL_PACKS_AGGREGATED_SOC_AVAILABLE = 310;
+	private static final int PARALLEL_PACKS_AGGREGATED_SOC_TOTAL = 311;
+	private static final int PARALLEL_PACKS_AGGREGATED_SOH_TOTAL = 320;
+	private static final int PARALLEL_PACKS_AGGREGATED_CAPACITY_AVAILABLE = 330;
+	private static final int PARALLEL_PACKS_AGGREGATED_CAPACITY_TOTAL = 332;
+	private static final int PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT = 340;
+	private static final int PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_DISCHARGE_MODE = 350;
+	private static final int PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_CHARGE_MODE = 351;
+	private static final int PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_DISCHARGE = 352;
+	private static final int PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_CHARGE = 353;
+	private static final int PARALLEL_PACKS_AGGREGATED_DCLI = 360;
+	private static final int PARALLEL_PACKS_AGGREGATED_DCLO = 370;
+	private static final int PARALLEL_PACKS_AGGREGATED_BALANCING_STATUS = 380;
+	private static final int PARALLEL_PACKS_AGGREGATED_CONTACTOR_WELD_STATUS = 381;
+	private static final int PARALLEL_PACKS_AGGREGATED_MIN_CELL_TEMPERATURE = 390;
+	private static final int PARALLEL_PACKS_AGGREGATED_MAX_CELL_TEMPERATURE = 391;
+	private static final int PARALLEL_PACKS_AGGREGATED_MIN_CELL_VOLTAGE = 400;
+	private static final int PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE = 401;
+	private static final int PARALLEL_PACKS_AGGREGATED_CHARGE_COMPLETE_STATUS = 410;
+	private static final int PARALLEL_PACKS_AGGREGATED_SYSTEM_STATE = 411;
+	private static final int PARALLEL_PACKS_AGGREGATED_NUMBER_CURRENT_CONNECTIONS = 412;
+	private static final int PARALLEL_PACKS_AGGREGATED_MIN_CELL_TEMPERATURE_INDEX = 413;
+	private static final int PARALLEL_PACKS_AGGREGATED_MAX_CELL_TEMPERATURE_INDEX = 414;
+	private static final int PARALLEL_PACKS_AGGREGATED_MIN_CELL_VOLTAGE_INDEX = 415;
+	private static final int PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE_INDEX = 416;
 		
 	// Modbus addresses used for communication with Sensata BMS - write only
-	private static final int REQUEST_RELAY_STATE 		= 100;
-	private static final int INHIBIT_BALANCING			= 120;
-	private static final int HEART_BEAT 				= 150;
+	//private static final int REQUEST_RELAY_STATE 		= 100;
+	//private static final int INHIBIT_BALANCING			= 120;
+	private static final int HEART_BEAT 				= 301;
 	
 	//for parallel mode
-	private static final int PARALLEL_PACK_REQUEST 		= 400;
+	private static final int PARALLEL_PACKS_REQUEST_RELAY_STATE  		= 300;
 
 	@Override
 	protected ModbusProtocol defineModbusProtocol() {
@@ -187,143 +194,181 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 
 				// Values required for the battery channel - read only
 				new FC3ReadRegistersTask(//
-						CAPACITY, //
+						PARALLEL_PACKS_STATE, //
 						Priority.LOW, //
-						m(Battery.ChannelId.CAPACITY, new FloatQuadruplewordElement(CAPACITY)) //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_STATE, new UnsignedWordElement(PARALLEL_PACKS_STATE)) //
 				), //
 				new FC3ReadRegistersTask(//
-						CHARGE_MAX_CURRENT, //
+						PARALLEL_PACKS_CURRENTLY_DETECTED_PACKS, //
 						Priority.LOW, //
-						m(BatteryProtection.ChannelId.BP_CHARGE_BMS, new FloatQuadruplewordElement(CHARGE_MAX_CURRENT)) //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_CURRENTLY_DETECTED_PACKS, new UnsignedWordElement(PARALLEL_PACKS_CURRENTLY_DETECTED_PACKS)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_SOC_AVAILABLE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_SOC_AVAILABLE, new SignedWordElement(PARALLEL_PACKS_AGGREGATED_SOC_AVAILABLE), SCALE_FACTOR_MINUS_2) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_SOC_TOTAL, //
+						Priority.LOW, //
+						m(Battery.ChannelId.SOC, new SignedWordElement(PARALLEL_PACKS_AGGREGATED_SOC_TOTAL), SCALE_FACTOR_MINUS_2) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_SOH_TOTAL, //
+						Priority.LOW, //
+						m(Battery.ChannelId.SOH, new FloatDoublewordElement(PARALLEL_PACKS_AGGREGATED_SOH_TOTAL)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_CAPACITY_AVAILABLE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_CAPACITY_AVAILABLE, new SignedDoublewordElement(PARALLEL_PACKS_AGGREGATED_CAPACITY_AVAILABLE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_CAPACITY_TOTAL, //
+						Priority.LOW, //
+						m(Battery.ChannelId.CAPACITY, new SignedDoublewordElement(PARALLEL_PACKS_AGGREGATED_CAPACITY_TOTAL)) //
+				), //
+				// TODO: Equivalent für den Parallel-Pack Mode? Ggf. PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT?
+//				new FC3ReadRegistersTask(//
+//						CURRENT, //
+//						Priority.LOW, //
+//						m(Battery.ChannelId.CURRENT, new FloatQuadruplewordElement(CURRENT)) //
+//				), //
+				// TODO: ist das der CURRENT aus der Battery-Klasse?
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT, new FloatQuadruplewordElement(PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_DISCHARGE_MODE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_DISCHARGE_MODE, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_DISCHARGE_MODE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_CHARGE_MODE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_CHARGE_MODE, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_CHARGE_MODE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_DISCHARGE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_DISCHARGE, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_DISCHARGE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_CHARGE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_CHARGE, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_CHARGE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_DCLI, //
+						Priority.LOW, //
+						m(Battery.ChannelId.CHARGE_MAX_CURRENT, new FloatQuadruplewordElement(PARALLEL_PACKS_AGGREGATED_DCLI)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_DCLO, //
+						Priority.LOW, //
+						m(Battery.ChannelId.DISCHARGE_MAX_CURRENT, new FloatQuadruplewordElement(PARALLEL_PACKS_AGGREGATED_DCLO)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_BALANCING_STATUS, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_BALANCING_STATUS, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_BALANCING_STATUS)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_CONTACTOR_WELD_STATUS, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_CONTACTOR_WELD_STATUS, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_CONTACTOR_WELD_STATUS)) //
+				), //
+				// TODO: Equivalent für den Parallel-Pack Mode?
+//				new FC3ReadRegistersTask(//
+//						VOLTAGE, //
+//						Priority.LOW, //
+//						m(Battery.ChannelId.VOLTAGE, new FloatQuadruplewordElement(VOLTAGE)) //
+//				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_MIN_CELL_TEMPERATURE, //
+						Priority.LOW, //
+						m(Battery.ChannelId.MIN_CELL_TEMPERATURE, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_MIN_CELL_TEMPERATURE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_MAX_CELL_TEMPERATURE, //
+						Priority.LOW, //
+						m(Battery.ChannelId.MAX_CELL_TEMPERATURE, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_MAX_CELL_TEMPERATURE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_MIN_CELL_VOLTAGE, //
+						Priority.LOW, //
+						m(Battery.ChannelId.MIN_CELL_VOLTAGE, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_MIN_CELL_VOLTAGE), SCALE_FACTOR_3) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE, //
+						Priority.LOW, //
+						m(Battery.ChannelId.MAX_CELL_VOLTAGE, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE), SCALE_FACTOR_3) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_CHARGE_COMPLETE_STATUS, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_CHARGE_COMPLETE_STATUS, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_CHARGE_COMPLETE_STATUS)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_SYSTEM_STATE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_SYSTEM_STATE, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_SYSTEM_STATE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_NUMBER_CURRENT_CONNECTIONS, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_CURRENT_CONNECTIONS, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_NUMBER_CURRENT_CONNECTIONS)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_MIN_CELL_TEMPERATURE_INDEX, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_MIN_CELL_TEMPERATURE_INDEX, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_MIN_CELL_TEMPERATURE_INDEX)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_MAX_CELL_TEMPERATURE_INDEX, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_MAX_CELL_TEMPERATURE_INDEX, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_MAX_CELL_TEMPERATURE_INDEX)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_MIN_CELL_VOLTAGE_INDEX, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_MIN_CELL_VOLTAGE_INDEX, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_MIN_CELL_VOLTAGE_INDEX)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE_INDEX, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE_INDEX, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE_INDEX)) //
+				), //
+				// Values required for Sensata itself - write only
+				new FC6WriteRegisterTask(//
+						PARALLEL_PACKS_REQUEST_RELAY_STATE, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE, new UnsignedWordElement(PARALLEL_PACKS_REQUEST_RELAY_STATE)) //
 				), //
 
-				new FC3ReadRegistersTask(//
-						DISCHARGE_MAX_CURRENT, //
-						Priority.LOW, //
-						m(BatteryProtection.ChannelId.BP_DISCHARGE_BMS, new FloatQuadruplewordElement(DISCHARGE_MAX_CURRENT), INVERT) //
-				), //
-				new FC3ReadRegistersTask(//
-						SOC, //
-						Priority.LOW, //
-						m(Battery.ChannelId.SOC, new SignedWordElement(SOC), SCALE_FACTOR_MINUS_2) //
-				), //
-				new FC3ReadRegistersTask(//
-						SOH, //
-						Priority.LOW, //
-						m(Battery.ChannelId.SOH, new FloatDoublewordElement(SOH)) //
-				), //
-				new FC3ReadRegistersTask(//
-						CURRENT, //
-						Priority.LOW, //
-						m(Battery.ChannelId.CURRENT, new FloatQuadruplewordElement(CURRENT)) //
-				), //
-				new FC3ReadRegistersTask(//
-						MIN_CELL_VOLTAGE, //
-						Priority.LOW, //
-						m(Battery.ChannelId.MIN_CELL_VOLTAGE, new FloatQuadruplewordElement(MIN_CELL_VOLTAGE), SCALE_FACTOR_3) //
-				), //
-				new FC3ReadRegistersTask(//
-						MAX_CELL_VOLTAGE, //
-						Priority.LOW, //
-						m(Battery.ChannelId.MAX_CELL_VOLTAGE, new FloatQuadruplewordElement(MAX_CELL_VOLTAGE), SCALE_FACTOR_3) //
-				), //
-				new FC3ReadRegistersTask(//
-						VOLTAGE, //
-						Priority.LOW, //
-						m(Battery.ChannelId.VOLTAGE, new FloatQuadruplewordElement(VOLTAGE)) //
-				), //
-				new FC3ReadRegistersTask(//
-						MIN_CELL_TEMPERATURE, //
-						Priority.LOW, //
-						m(Battery.ChannelId.MIN_CELL_TEMPERATURE, new FloatQuadruplewordElement(MIN_CELL_TEMPERATURE)) //
-				), //
-				new FC3ReadRegistersTask(//
-						MAX_CELL_TEMPERATURE, //
-						Priority.LOW, //
-						m(Battery.ChannelId.MAX_CELL_TEMPERATURE, new FloatQuadruplewordElement(MAX_CELL_TEMPERATURE)) //
-				), //
 				
-				// Values required for Sensata itself - read only
-				new FC3ReadRegistersTask(//
-						RELAY_SEQUENCE, //
-						Priority.LOW, //
-						m(SensataBms.ChannelId.RELAY_SEQUENCE, new UnsignedWordElement(RELAY_SEQUENCE)) //
-				), //
-				new FC3ReadRegistersTask(//
-						RELAY_SEQUENCE_COMPLETED, //
-						Priority.LOW, //
-						m(SensataBms.ChannelId.RELAY_SEQUENCE_COMPLETED, new UnsignedWordElement(RELAY_SEQUENCE_COMPLETED)) //
-				), //
+//				// write only
+//				new FC6WriteRegisterTask(//
+//						REQUEST_RELAY_STATE, //
+//						m(SensataBms.ChannelId.REQUEST_RELAY_STATE, new UnsignedWordElement(REQUEST_RELAY_STATE)) //
+//				), //
 				
-				//values required for battery diagnostics / fault handling
-				new FC3ReadRegistersTask(//
-						CELL_OVER_VOLTAGE, //
-						Priority.LOW, //
-						m(SensataBms.ChannelId.CELL_OVER_VOLTAGE, new UnsignedWordElement(CELL_OVER_VOLTAGE)) //
-				), //
-				new FC3ReadRegistersTask(//
-						CELL_OVER_VOLTAGE, //
-						Priority.LOW, //
-						m(SensataBms.ChannelId.CELL_OVER_VOLTAGE, new UnsignedWordElement(CELL_OVER_VOLTAGE)) //
-				), //
-				new FC3ReadRegistersTask(//
-						CELL_UNDER_VOLTAGE, //
-						Priority.LOW, //
-						m(SensataBms.ChannelId.CELL_UNDER_VOLTAGE, new UnsignedWordElement(CELL_UNDER_VOLTAGE)) //
-				), //
-				new FC3ReadRegistersTask(//
-						CELL_OVER_TEMP, //
-						Priority.LOW, //
-						m(SensataBms.ChannelId.CELL_OVER_TEMP, new UnsignedWordElement(CELL_OVER_TEMP)) //
-				), //
-				new FC3ReadRegistersTask(//
-						CELL_UNDER_TEMP, //
-						Priority.LOW, //
-						m(SensataBms.ChannelId.CELL_UNDER_TEMP, new UnsignedWordElement(CELL_UNDER_TEMP)) //
-				), //
-				new FC3ReadRegistersTask(//
-						CURRENT_IN_TOO_HIGH, //
-						Priority.LOW, //
-						m(SensataBms.ChannelId.CURRENT_IN_TOO_HIGH, new UnsignedWordElement(CURRENT_IN_TOO_HIGH)) //
-				), //
-				new FC3ReadRegistersTask(//
-						CURRENT_OUT_TOO_HIGH, //
-						Priority.LOW, //
-						m(SensataBms.ChannelId.CURRENT_OUT_TOO_HIGH, new UnsignedWordElement(CURRENT_OUT_TOO_HIGH)) //
-				), //
-				new FC3ReadRegistersTask(//
-						SOA_WARNING, //
-						Priority.LOW, //
-						m(SensataBms.ChannelId.SOA_WARNING, new UnsignedWordElement(SOA_WARNING)) //
-				), //
-				new FC3ReadRegistersTask(//
-						SOA_VIOLATION, //
-						Priority.LOW, //
-						m(SensataBms.ChannelId.SOA_VIOLATION, new UnsignedWordElement(SOA_VIOLATION)) //
-				), //
-
-				
-				// write only
-				new FC6WriteRegisterTask(//
-						REQUEST_RELAY_STATE, //
-						m(SensataBms.ChannelId.REQUEST_RELAY_STATE, new UnsignedWordElement(REQUEST_RELAY_STATE)) //
-				), //
-				
-				new FC6WriteRegisterTask(//
-						INHIBIT_BALANCING, //
-						m(SensataBms.ChannelId.INHIBIT_BALANCING, new UnsignedWordElement(INHIBIT_BALANCING)) //
-				), //
+//				new FC6WriteRegisterTask(//
+//						INHIBIT_BALANCING, //
+//						m(SensataBms.ChannelId.INHIBIT_BALANCING, new UnsignedWordElement(INHIBIT_BALANCING)) //
+//				), //
 				
 				new FC6WriteRegisterTask(//
 						HEART_BEAT, //
 						m(SensataBms.ChannelId.HEART_BEAT, new UnsignedWordElement(HEART_BEAT)) //
-				), //
-				
-				//test value for parallel mode
-				new FC6WriteRegisterTask(//
-						PARALLEL_PACK_REQUEST, //
-						m(SensataBms.ChannelId.PARALLEL_PACK_REQUEST, new UnsignedWordElement(PARALLEL_PACK_REQUEST)) //
 				) //
+				
+//				//test value for parallel mode
+//				new FC6WriteRegisterTask(//
+//						PARALLEL_PACKS_REQUEST_RELAY_STATE , //
+//						m(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE , new UnsignedWordElement(PARALLEL_PACKS_REQUEST_RELAY_STATE )) //
+//				) //
 			 
 		);
 	}
@@ -388,7 +433,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		
 		try {
 			
-			parallelPackRequestRelay = this.channel(SensataBms.ChannelId.PARALLEL_PACK_REQUEST);
+			parallelPackRequestRelay = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE );
 			parallelPackRequestRelay.setNextWriteValue(desired.getValue());
 			this.log.info("Requestet Relay State: {}", desired);
 			
@@ -411,18 +456,18 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 
 
 		try {
-			requestRelayState = this.channel(SensataBms.ChannelId.REQUEST_RELAY_STATE);
+			requestRelayState = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE);
 			heartbeatChannel = this.channel(SensataBms.ChannelId.HEART_BEAT);
-			inhibitBalancingChannel = this.channel(SensataBms.ChannelId.INHIBIT_BALANCING);
+			//inhibitBalancingChannel = this.channel(SensataBms.ChannelId.INHIBIT_BALANCING);
 			
-			relaySequence = this.channel(SensataBms.ChannelId.RELAY_SEQUENCE);
-			relaySequenceCompleted = this.channel(SensataBms.ChannelId.RELAY_SEQUENCE_COMPLETED);
+//			relaySequence = this.channel(SensataBms.ChannelId.RELAY_SEQUENCE);
+//			relaySequenceCompleted = this.channel(SensataBms.ChannelId.RELAY_SEQUENCE_COMPLETED);
 
 			
 			heartbeatChannel.setNextWriteValue(DEFAULT_HEART_BEAT);
 			this.logInfo(this.log, "HeartBeat: " + DEFAULT_HEART_BEAT);
 			
-		    inhibitBalancingChannel.setNextWriteValue(this.enableBalancing ? 0 : 1);
+//		    inhibitBalancingChannel.setNextWriteValue(this.enableBalancing ? 0 : 1);
 		    this.logInfo(this.log, "Balancing is " + (this.enableBalancing ? "enabled" : "disabled"));
 			
 		} catch (IllegalArgumentException | OpenemsNamedException e1) {						 
@@ -492,15 +537,15 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				+ this.channel(Battery.ChannelId.VOLTAGE).value().asString() + " max_Temp: "
 				+ this.channel(Battery.ChannelId.MAX_CELL_TEMPERATURE).value().asString() +" min_Temp: "
 				+ this.channel(Battery.ChannelId.MIN_CELL_TEMPERATURE).value().asString() +" act State: "
-				+ this.channel(SensataBms.ChannelId.RELAY_SEQUENCE).value().asString()	+ " COV: "
-				+ this.channel(SensataBms.ChannelId.CELL_OVER_VOLTAGE).value().asString()+ " CUV: "
-				+ this.channel(SensataBms.ChannelId.CELL_UNDER_VOLTAGE).value().asString()+ " COT: "
-				+ this.channel(SensataBms.ChannelId.CELL_OVER_TEMP).value().asString()+ " CUT: "
-				+ this.channel(SensataBms.ChannelId.CELL_UNDER_TEMP).value().asString()+ " CITH: "
-				+ this.channel(SensataBms.ChannelId.CURRENT_IN_TOO_HIGH).value().asString()+ " COTH: "
-				+ this.channel(SensataBms.ChannelId.CURRENT_OUT_TOO_HIGH).value().asString()+ " SOA_Warn: "
-				+ this.channel(SensataBms.ChannelId.SOA_WARNING).value().asString()+ " SOA_Viola: "
-				+ this.channel(SensataBms.ChannelId.SOA_VIOLATION).value().asString(); 
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_STATE).value().asString()	+ " det. packs: "
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_CURRENTLY_DETECTED_PACKS).value().asString()+ " soc av.: "
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_SOC_AVAILABLE).value().asString()+ " num packs disch.: "
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_DISCHARGE_MODE).value().asString()+ " num packs charge: "
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_CHARGE_MODE).value().asString()+ " num missed disch.: "
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_DISCHARGE).value().asString()+ " num missed charge: "
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_CHARGE).value().asString()+ " bal. stat.: "
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_BALANCING_STATUS).value().asString()+ " contactor: "
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_CONTACTOR_WELD_STATUS).value().asString(); 
 	}
  
 		   
