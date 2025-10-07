@@ -11,6 +11,7 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 		private String id;
 		private String modbusId = null;
 		private int modbusUnitId;
+		private String essId;
 		
 		private StartStopConfig startStop;
 		
@@ -19,6 +20,8 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 		private int innerResistance;
 		private int minCellTemperature;
 		private int maxCellTemperature;
+		
+		private boolean isBalancingEnabled;
 		
 		private Builder() {
 		}
@@ -35,6 +38,11 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 
 		public Builder setModbusUnitId(int modbusUnitId) {
 			this.modbusUnitId = modbusUnitId;
+			return this;
+		}
+
+		public Builder setEssId(String essId) {
+			this.essId = essId;
 			return this;
 		}
 
@@ -67,6 +75,11 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 			this.innerResistance = innerResistance;
 			return this;
 		}
+		
+		public Builder setEnableBalancing(boolean enableBalancing) {
+			this.isBalancingEnabled = enableBalancing;
+			return this;
+		}
 
 		public MyConfig build() {
 			return new MyConfig(this);
@@ -87,6 +100,15 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 	private MyConfig(Builder builder) {
 		super(Config.class, builder.id);
 		this.builder = builder;
+	}
+
+	@Override
+	public String ess_id() {
+		return this.builder.essId;
+	}
+	
+	public boolean enable_balancing() {
+		return this.builder.isBalancingEnabled;
 	}
 
 	@Override
