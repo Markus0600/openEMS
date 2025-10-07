@@ -268,6 +268,42 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 				.accessMode(READ_ONLY) //
 				.text("Index of parallel pack reporting max cell voltage among all connected packs")),
 
+		// Sensata ID: 48418...48427
+		// Name: PARALLEL_PACKS_PPAIDx_RELAY_SEQUENCE
+		// Modbus register: 420..24, 430..34
+		// Type: uint8
+		// Unit: -
+		PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE(Doc.of(SHORT) //
+				.accessMode(READ_ONLY) //
+				.text("Active relay sequence reported by pack with parallel Pack + ID 1")),
+		PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE(Doc.of(SHORT) //
+				.accessMode(READ_ONLY) //
+				.text("Active relay sequence reported by pack with parallel Pack + ID 2")),
+		PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE(Doc.of(SHORT) //
+				.accessMode(READ_ONLY) //
+				.text("Active relay sequence reported by pack with parallel Pack + ID 3")),
+		PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE(Doc.of(SHORT) //
+				.accessMode(READ_ONLY) //
+				.text("Active relay sequence reported by pack with parallel Pack + ID 4")),
+		PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE(Doc.of(SHORT) //
+				.accessMode(READ_ONLY) //
+				.text("Active relay sequence reported by pack with parallel Pack + ID 5")),
+		PARALLEL_PACKS_PPAID6_RELAY_SEQUENCE(Doc.of(SHORT) //
+				.accessMode(READ_ONLY) //
+				.text("Active relay sequence reported by pack with parallel Pack + ID 6")),
+		PARALLEL_PACKS_PPAID7_RELAY_SEQUENCE(Doc.of(SHORT) //
+				.accessMode(READ_ONLY) //
+				.text("Active relay sequence reported by pack with parallel Pack + ID 7")),
+		PARALLEL_PACKS_PPAID8_RELAY_SEQUENCE(Doc.of(SHORT) //
+				.accessMode(READ_ONLY) //
+				.text("Active relay sequence reported by pack with parallel Pack + ID 8")),
+		PARALLEL_PACKS_PPAID9_RELAY_SEQUENCE(Doc.of(SHORT) //
+				.accessMode(READ_ONLY) //
+				.text("Active relay sequence reported by pack with parallel Pack + ID 9")),
+		PARALLEL_PACKS_PPAID10_RELAY_SEQUENCE(Doc.of(SHORT) //
+				.accessMode(READ_ONLY) //
+				.text("Active relay sequence reported by pack with parallel Pack + ID 10")),
+		
 		// Sensata ID: 48604
 		// Name: PARALLEL_PACKS_REQUEST_RELAY_STATE
 		// Modbus register: 300 (write)

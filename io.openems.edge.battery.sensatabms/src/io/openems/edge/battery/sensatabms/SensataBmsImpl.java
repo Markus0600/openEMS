@@ -176,6 +176,17 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private static final int PARALLEL_PACKS_AGGREGATED_MAX_CELL_TEMPERATURE_INDEX = 414;
 	private static final int PARALLEL_PACKS_AGGREGATED_MIN_CELL_VOLTAGE_INDEX = 415;
 	private static final int PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE_INDEX = 416;
+	
+	private static final int PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE = 420;
+	private static final int PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE = 421;
+	private static final int PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE = 422;
+	private static final int PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE = 423;
+	private static final int PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE = 424;
+	private static final int PARALLEL_PACKS_PPAID6_RELAY_SEQUENCE = 430;
+	private static final int PARALLEL_PACKS_PPAID7_RELAY_SEQUENCE = 431;
+	private static final int PARALLEL_PACKS_PPAID8_RELAY_SEQUENCE = 432;
+	private static final int PARALLEL_PACKS_PPAID9_RELAY_SEQUENCE = 433;
+	private static final int PARALLEL_PACKS_PPAID10_RELAY_SEQUENCE = 434;
 		
 	// Modbus addresses used for communication with Sensata BMS - write only
 	//private static final int REQUEST_RELAY_STATE 		= 100;
@@ -341,13 +352,64 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 						Priority.LOW, //
 						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE_INDEX, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE_INDEX)) //
 				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE, new UnsignedWordElement(PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE, new UnsignedWordElement(PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE, new UnsignedWordElement(PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE, new UnsignedWordElement(PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE, new UnsignedWordElement(PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID6_RELAY_SEQUENCE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID6_RELAY_SEQUENCE, new UnsignedWordElement(PARALLEL_PACKS_PPAID6_RELAY_SEQUENCE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID7_RELAY_SEQUENCE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID7_RELAY_SEQUENCE, new UnsignedWordElement(PARALLEL_PACKS_PPAID7_RELAY_SEQUENCE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID8_RELAY_SEQUENCE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID8_RELAY_SEQUENCE, new UnsignedWordElement(PARALLEL_PACKS_PPAID8_RELAY_SEQUENCE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID9_RELAY_SEQUENCE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID9_RELAY_SEQUENCE, new UnsignedWordElement(PARALLEL_PACKS_PPAID9_RELAY_SEQUENCE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID10_RELAY_SEQUENCE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID10_RELAY_SEQUENCE, new UnsignedWordElement(PARALLEL_PACKS_PPAID10_RELAY_SEQUENCE)) //
+				), //
+
+				
 				// Values required for Sensata itself - write only
 				new FC6WriteRegisterTask(//
 						PARALLEL_PACKS_REQUEST_RELAY_STATE, //
 						m(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE, new UnsignedWordElement(PARALLEL_PACKS_REQUEST_RELAY_STATE)) //
 				), //
 
-				
 //				// write only
 //				new FC6WriteRegisterTask(//
 //						REQUEST_RELAY_STATE, //
@@ -363,12 +425,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 						HEART_BEAT, //
 						m(SensataBms.ChannelId.HEART_BEAT, new UnsignedWordElement(HEART_BEAT)) //
 				) //
-				
-//				//test value for parallel mode
-//				new FC6WriteRegisterTask(//
-//						PARALLEL_PACKS_REQUEST_RELAY_STATE , //
-//						m(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE , new UnsignedWordElement(PARALLEL_PACKS_REQUEST_RELAY_STATE )) //
-//				) //
 			 
 		);
 	}
@@ -428,6 +484,13 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		this.log.info("Latest Setpoint from ESS {}", powerSetpoint);
 	
 		ParallelPack desired = ((powerSetpoint < 0)? ParallelPack.CHARGE : ParallelPack.DISCHARGE);
+		if(powerSetpoint < 0) {
+			desired = ParallelPack.CHARGE;
+		} else if(powerSetpoint > 0) {
+			desired = ParallelPack.DISCHARGE;
+		} else {
+			desired = ParallelPack.IDLE;
+		}
 		
 		IntegerWriteChannel parallelPackRequestRelay = null;
 		

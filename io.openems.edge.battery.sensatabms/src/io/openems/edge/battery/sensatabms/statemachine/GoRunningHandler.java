@@ -37,13 +37,14 @@ public class GoRunningHandler extends StateHandler<State, Context> {
 
 		// Wenn BMS IDLE meldet aktiviere Relais
 		if (rs == Status.IDLE.getValue()) {
-			context.setRequestRelayState(Status.POWER_ON);
 			this.log.info("BMS reports IDLE, requesting PRECHARGE - transitioning to RUNNING");
-		}
-		if (rs == Status.POWER_ON.getValue() && context.isRelaySequenceCompleted()) {
-			this.log.info("Discharge active and sequence completed, transitioning to RUNNING");
 			return State.RUNNING;
 		}
+//		if (rs == Status.POWER_ON.getValue() && context.isRelaySequenceCompleted()) {
+//		if (rs == Status.POWER_ON.getValue()) {
+//			this.log.info("Discharge active and sequence completed, transitioning to RUNNING");
+//			return State.RUNNING;
+//		}
 		
 		// Still waiting for BMS to reach IDLE state
 		this.log.debug("Waiting for BMS to reach IDLE state (current: {})", rs, context.isRelaySequenceCompleted());
