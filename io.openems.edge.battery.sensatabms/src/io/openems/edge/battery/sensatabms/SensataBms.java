@@ -3,6 +3,7 @@ package io.openems.edge.battery.sensatabms;
 import static io.openems.common.channel.AccessMode.READ_ONLY;
 import static io.openems.common.channel.AccessMode.WRITE_ONLY;
 import static io.openems.common.types.OpenemsType.SHORT;
+import static io.openems.common.types.OpenemsType.LONG;
 import static io.openems.common.types.OpenemsType.INTEGER;
 import static io.openems.common.types.OpenemsType.FLOAT;
 import static io.openems.common.types.OpenemsType.DOUBLE;
@@ -89,7 +90,7 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 		// Modbus register: 330
 		// Type: unit32
 		// Unit: As
-		PARALLEL_PACKS_AGGREGATED_CAPACITY_AVAILABLE(Doc.of(INTEGER) //
+		PARALLEL_PACKS_AGGREGATED_CAPACITY_AVAILABLE(Doc.of(LONG) //
 				.accessMode(READ_ONLY) //
 				.text("Aggregated charge capacity of all packs detected in the system")),
 
@@ -309,7 +310,7 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 		// Modbus register: 300 (write)
 		// Type: uint8
 		// Unit: -
-		PARALLEL_PACKS_REQUEST_RELAY_STATE(Doc.of(SHORT) //
+		PARALLEL_PACKS_REQUEST_RELAY_STATE(Doc.of(INTEGER) //
 				.accessMode(WRITE_ONLY) //
 				.text("IDLE = 0, CHARGE = 1, DISCHARGE = 2")),
 
@@ -320,20 +321,7 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 		// Unit: -
 		HEART_BEAT(Doc.of(SHORT) //
 				.accessMode(WRITE_ONLY) //
-				.text("Heart beat for BMS")),
-
-//		// Channel for contactor control via Modbus / CAN. Possible values according to Sensata documentation:
-//		// 0: Undefined
-//		// 1: Idle
-//		// 2: charging
-//		// 3: discharging
-//		// 4: error
-//		REQUEST_RELAY_STATE(Doc.of(INTEGER) //
-//				.accessMode(WRITE_ONLY) //
-//				.text("Set requested contactor sequence. 0=none, 1=idle, 2=charge, 3=discharge, 4=error")),
-//		RELAY_SEQUENCE(Doc.of(INTEGER) //
-//				.accessMode(READ_ONLY) //
-//				.text("Current Relay State. 0=none, 1=idle, 2=charge, 3=discharge, 4=error")),		
+				.text("Heart beat for BMS")),	
 		;
 
 		private final Doc doc;

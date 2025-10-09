@@ -5,8 +5,11 @@ import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
+import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.statemachine.StateHandler;
+import io.openems.edge.battery.sensatabms.ParallelPack;
+import io.openems.edge.battery.sensatabms.SensataBms;
 
 public class RunningHandler extends StateHandler<State, Context> {
 
@@ -34,9 +37,38 @@ public class RunningHandler extends StateHandler<State, Context> {
 			return State.ERROR;
 		}
 		
+		int powerSetpoint;
+		powerSetpoint = ((SensataBms) battery).getLatestEssSetpointW();
+		this.log.info("Latest Setpoint from ESS {}", powerSetpoint);
+	
+//		ParallelPack desired = ((powerSetpoint < 0)? ParallelPack.CHARGE : ParallelPack.DISCHARGE);
+		
+		ParallelPack desired;
+		
+		if(powerSetpoint < 0) {
+			desired = ParallelPack.CHARGE;
+			this.log.info("ParallelPack in CHARGE");
+		} else { //if(powerSetpoint > 0) {
+			desired = ParallelPack.DISCHARGE;
+			this.log.info("ParallelPack in DISCHARGE");
+		}
+//		} else {
+//			desired = ParallelPack.IDLE;
+//			this.log.info("ParallelPack in IDLE");
+//		}
+		
+		if(context.getRequestRelayState() != desired) {
+			try {
+				context.setRequestRelayState(desired);
+				this.log.info("Updated relay state to {} based on Setpoint {}W", desired, powerSetpoint);
+			} catch (Exception e) {
+				this.log.info("Could not set relay state to {} this cycle. Will retry next cycle", desired);
+			}
+		}
+		
 		
 		// Ensure battery stays started during operation
-		if (!battery.isStarted()) {
+		if (!battery.isStarted() && battery.getStartStopTarget() != StartStop.STOP) {
 			battery._setStartStop(StartStop.START); 
 		}
 			
@@ -52,4 +84,6 @@ public class RunningHandler extends StateHandler<State, Context> {
 			}
 		};
 	}
+	
+	
 }

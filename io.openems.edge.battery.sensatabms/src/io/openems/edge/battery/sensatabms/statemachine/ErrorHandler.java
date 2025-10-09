@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
-import io.openems.edge.battery.sensatabms.Status;
+import io.openems.edge.battery.sensatabms.ParallelPack;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
 import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.statemachine.StateHandler;
@@ -29,7 +29,7 @@ public class ErrorHandler extends StateHandler<State, Context> {
         battery._setStartStop(StartStop.STOP);
         
         try {
-            context.setRequestRelayState(Status.IDLE);
+            context.setRequestRelayState(ParallelPack.IDLE);
             this.log.info("Relay set to IDLE for safety");
         } catch (OpenemsNamedException e) {
             this.log.error("CRITICAL: Failed to set relay to IDLE in ERROR state: " + e.getMessage());
@@ -49,9 +49,9 @@ public class ErrorHandler extends StateHandler<State, Context> {
         }
         
         // Ensure relay stays in IDLE while in ERROR
-        if (context.getRequestRelayState() != Status.IDLE) {
+        if (context.getRequestRelayState() != ParallelPack.IDLE) {
             try {
-                context.setRequestRelayState(Status.IDLE);
+                context.setRequestRelayState(ParallelPack.IDLE);
                 this.log.info("Ensuring relay stays IDLE in ERROR state");
             } catch (OpenemsNamedException e) {
                 this.log.error("Failed to maintain IDLE relay state: " + e.getMessage());

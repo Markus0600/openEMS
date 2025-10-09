@@ -5,29 +5,42 @@ import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.edge.battery.sensatabms.SensataBms;
-import io.openems.edge.battery.sensatabms.Status;
+import io.openems.edge.battery.sensatabms.ParallelPack;
 import io.openems.edge.common.channel.IntegerWriteChannel;
+import io.openems.edge.common.channel.ShortReadChannel;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.statemachine.AbstractContext;
 
 public class Context extends AbstractContext<SensataBms> {
 
 	protected final IntegerWriteChannel RequestRelayState;
-	protected final IntegerReadChannel RelaySequence;
-	protected final IntegerReadChannel RelaySequenceCompleted; //new for robust statemachine go-running 
-	protected Status currentRelayState;
+	protected final ShortReadChannel RelaySequence1;
+	protected final ShortReadChannel RelaySequence2;
+	protected final ShortReadChannel RelaySequence3;
+	protected final ShortReadChannel RelaySequence4;
+	protected final ShortReadChannel RelaySequence5;
+//	protected final IntegerReadChannel RelaySequenceCompleted; //new for robust statemachine go-running 
+	protected ParallelPack currentRelayState;
+	protected final ShortReadChannel numPacks;
 	
 	private final Logger log = LoggerFactory.getLogger(Context.class);
 
-	public Context(SensataBms parent, IntegerWriteChannel RequestRelayState, IntegerReadChannel RelaySequence, IntegerReadChannel RelaySequenceCompleted) {
+	public Context(SensataBms parent, IntegerWriteChannel RequestRelayState, ShortReadChannel RelaySequence1, ShortReadChannel RelaySequence2, ShortReadChannel RelaySequence3, ShortReadChannel RelaySequence4, ShortReadChannel RelaySequence5, ShortReadChannel NumPacks) {
 		super(parent);
 		this.RequestRelayState = RequestRelayState;
-		this.RelaySequence = RelaySequence;
-		this.RelaySequenceCompleted = RelaySequenceCompleted;
-		this.currentRelayState = Status.UNDEFINED;
+		
+		this.RelaySequence1 = RelaySequence1;
+		this.RelaySequence2 = RelaySequence2;
+		this.RelaySequence3 = RelaySequence3;
+		this.RelaySequence4 = RelaySequence4;
+		this.RelaySequence5 = RelaySequence5;
+		this.numPacks = NumPacks;
+		
+//		this.RelaySequenceCompleted = RelaySequenceCompleted;
+		this.currentRelayState = ParallelPack.IDLE;
 	}
 	
-	public void setRequestRelayState(Status requestRelayState) throws OpenemsNamedException {
+	public void setRequestRelayState(ParallelPack requestRelayState) throws OpenemsNamedException {
 		
 		this.log.info("Context::setRequestRelayState trying to set relay to state " + requestRelayState.toString());
 		
@@ -40,11 +53,10 @@ public class Context extends AbstractContext<SensataBms> {
 		
 		// Range check
 		if(
-				(requestRelayState != Status.UNDEFINED)
-				&& (requestRelayState != Status.IDLE)
-				&& (requestRelayState != Status.PRECHARGE)
-				&& (requestRelayState != Status.POWER_ON)
-				&& (requestRelayState != Status.ERROR)
+				(requestRelayState != ParallelPack.IDLE)
+				&& (requestRelayState != ParallelPack.CHARGE)
+				&& (requestRelayState != ParallelPack.DISCHARGE)
+
 				)
 		{
 			this.logInfo(this.log,
@@ -63,31 +75,73 @@ public class Context extends AbstractContext<SensataBms> {
 
 	}
 	
-    public Status getRequestRelayState() {
+    public ParallelPack getRequestRelayState() {
         return this.currentRelayState;
     }
 
-    public int getRelaySequence() {
-        if (this.RelaySequence == null) {
-                return Status.UNDEFINED.getValue();
+    
+    public int getRelaySequence1() {
+        if (this.RelaySequence1 == null) {
+                return ParallelPack.IDLE.getValue();
         }
-        var value = this.RelaySequence.value();
+        var value = this.RelaySequence1.value();
         if (value.isDefined()) {
                 return value.get();
         }
-        return Status.UNDEFINED.getValue();
+        return ParallelPack.IDLE.getValue();
+    }
+    public int getRelaySequence2() {
+        if (this.RelaySequence2 == null) {
+                return ParallelPack.IDLE.getValue();
+        }
+        var value = this.RelaySequence2.value();
+        if (value.isDefined()) {
+                return value.get();
+        }
+        return ParallelPack.IDLE.getValue();
+    }
+    public int getRelaySequence3() {
+        if (this.RelaySequence3 == null) {
+                return ParallelPack.IDLE.getValue();
+        }
+        var value = this.RelaySequence3.value();
+        if (value.isDefined()) {
+                return value.get();
+        }
+        return ParallelPack.IDLE.getValue();
+    }
+    public int getRelaySequence4() {
+        if (this.RelaySequence4 == null) {
+                return ParallelPack.IDLE.getValue();
+        }
+        var value = this.RelaySequence4.value();
+        if (value.isDefined()) {
+                return value.get();
+        }
+        return ParallelPack.IDLE.getValue();
+    }
+    public int getRelaySequence5() {
+        if (this.RelaySequence5 == null) {
+                return ParallelPack.IDLE.getValue();
+        }
+        var value = this.RelaySequence5.value();
+        if (value.isDefined()) {
+                return value.get();
+        }
+        return ParallelPack.IDLE.getValue();
     }
     
-    // Neue Methode zum Abfragen des Sequence-Completed-Status
-    public boolean isRelaySequenceCompleted() {
-        if (this.RelaySequenceCompleted == null) {
-            return false;
-        }
-        var value = this.RelaySequenceCompleted.value();
-        if (value.isDefined()) {
-            return value.get() == 1; // 1 bedeutet "abgeschlossen"
-        }
-        return false;
-    }
+    
+//    // Neue Methode zum Abfragen des Sequence-Completed-Status
+//    public boolean isRelaySequenceCompleted() {
+//        if (this.RelaySequenceCompleted == null) {
+//            return false;
+//        }
+//        var value = this.RelaySequenceCompleted.value();
+//        if (value.isDefined()) {
+//            return value.get() == 1; // 1 bedeutet "abgeschlossen"
+//        }
+//        return false;
+//    }
 
 }

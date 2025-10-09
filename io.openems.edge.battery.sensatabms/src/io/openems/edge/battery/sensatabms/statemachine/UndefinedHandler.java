@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
-import io.openems.edge.battery.sensatabms.Status;
+import io.openems.edge.battery.sensatabms.ParallelPack;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
 import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.statemachine.StateHandler;
@@ -28,7 +28,7 @@ public class UndefinedHandler extends StateHandler<State, Context> {
 		battery._setStartStop(StartStop.STOP);
 		
 		try {
-			context.setRequestRelayState(Status.IDLE);
+			context.setRequestRelayState(ParallelPack.IDLE);
 			this.log.info("Set relay to IDLE for safety");
 		} catch (OpenemsNamedException e) {
 			this.log.error("Failed to set relay to IDLE in UNDEFINED state: " + e.getMessage());
@@ -59,10 +59,10 @@ public class UndefinedHandler extends StateHandler<State, Context> {
 			battery._setStartStop(StartStop.STOP);
 		}
 		
-		if (context.getRequestRelayState() != Status.IDLE) {
+		if (context.getRequestRelayState() != ParallelPack.IDLE) {
 			try {
 				this.log.info("Set relay request: IDLE (from UNDEFINED).");
-				context.setRequestRelayState(Status.IDLE);
+				context.setRequestRelayState(ParallelPack.IDLE);
 			} catch (OpenemsNamedException e) {
 				this.log.error("Failed to set relay to IDLE in UNDEFINED state: " + e.getMessage());
 			}

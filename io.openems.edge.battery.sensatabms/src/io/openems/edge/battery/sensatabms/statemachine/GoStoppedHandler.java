@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
-import io.openems.edge.battery.sensatabms.Status;
+import io.openems.edge.battery.sensatabms.ParallelPack;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
 import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.statemachine.StateHandler;
@@ -23,7 +23,7 @@ public class GoStoppedHandler extends StateHandler<State, Context> {
 		
 		// Request IDLE relay state immediately
 		try {
-			context.setRequestRelayState(Status.IDLE);
+			context.setRequestRelayState(ParallelPack.IDLE);
 			this.log.info("Requested IDLE relay state for safe shutdown");
 		} catch (OpenemsNamedException e) {
 			this.log.error("Failed to request IDLE relay state on entry: " + e.getMessage());
@@ -46,19 +46,23 @@ public class GoStoppedHandler extends StateHandler<State, Context> {
 		}
 
 		// Ensure we're requesting IDLE state
-		if (context.getRequestRelayState() != Status.IDLE) {
+		if (context.getRequestRelayState() != ParallelPack.IDLE) {
 			this.log.info("Ensuring relay sequence IDLE is requested");
-			context.setRequestRelayState(Status.IDLE);
+			context.setRequestRelayState(ParallelPack.IDLE);
 		}
 
 		// Check if relay has reached IDLE state - transition complete
-		if (context.getRelaySequence() == Status.IDLE.getValue()) {
+		if (context.getRelaySequence1() == ParallelPack.IDLE.getValue()
+				&& context.getRelaySequence2() == ParallelPack.IDLE.getValue()
+				&& context.getRelaySequence3() == ParallelPack.IDLE.getValue()
+				&& context.getRelaySequence4() == ParallelPack.IDLE.getValue()
+				&& context.getRelaySequence5() == ParallelPack.IDLE.getValue()) {
 			this.log.info("Relay reached IDLE state - shutdown complete, transitioning to UNDEFINED");
 			return State.UNDEFINED; // Safe resting state
 		}
 
 		// Still waiting for relay to reach IDLE
-		this.log.debug("Waiting for relay to reach IDLE state (current: {})", context.getRelaySequence());
+		this.log.debug("Waiting for relay to reach IDLE state (current: {})", context.getRelaySequence1());
 		return State.GO_STOPPED;
 	}
 
