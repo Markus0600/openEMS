@@ -40,22 +40,16 @@ public class RunningHandler extends StateHandler<State, Context> {
 		int powerSetpoint;
 		powerSetpoint = ((SensataBms) battery).getLatestEssSetpointW();
 		this.log.info("Latest Setpoint from ESS {}", powerSetpoint);
-	
-//		ParallelPack desired = ((powerSetpoint < 0)? ParallelPack.CHARGE : ParallelPack.DISCHARGE);
 		
 		ParallelPack desired;
 		
 		if(powerSetpoint < 0) {
 			desired = ParallelPack.CHARGE;
 			this.log.info("ParallelPack in CHARGE");
-		} else { //if(powerSetpoint > 0) {
+		} else {
 			desired = ParallelPack.DISCHARGE;
 			this.log.info("ParallelPack in DISCHARGE");
 		}
-//		} else {
-//			desired = ParallelPack.IDLE;
-//			this.log.info("ParallelPack in IDLE");
-//		}
 		
 		if(context.getRequestRelayState() != desired) {
 			try {

@@ -304,6 +304,58 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 		PARALLEL_PACKS_PPAID10_RELAY_SEQUENCE(Doc.of(SHORT) //
 				.accessMode(READ_ONLY) //
 				.text("Active relay sequence reported by pack with parallel Pack + ID 10")),
+
+		// Sensata ID: 48338...48342
+		// Name: PARALLEL_PACKS_PPAIDx_PACK_VOLTAGE
+		// Modbus register: 
+		// Type: float64
+		// Unit: -	
+		PARALLEL_PACKS_PPAID1_PACK_CURRENT(Doc.of(DOUBLE)
+				.accessMode(READ_ONLY) //
+				.text("Voltage of Pack 1")),//
+		
+		PARALLEL_PACKS_PPAID2_PACK_CURRENT(Doc.of(DOUBLE)
+				.accessMode(READ_ONLY) //
+				.text("Voltage of Pack 2")),//
+		
+		PARALLEL_PACKS_PPAID3_PACK_CURRENT(Doc.of(DOUBLE)
+				.accessMode(READ_ONLY) //
+				.text("Voltage of Pack 3")),//
+		
+		PARALLEL_PACKS_PPAID4_PACK_CURRENT(Doc.of(DOUBLE)
+				.accessMode(READ_ONLY) //
+				.text("Voltage of Pack 4")),//
+		
+		PARALLEL_PACKS_PPAID5_PACK_CURRENT(Doc.of(DOUBLE)
+				.accessMode(READ_ONLY) //
+				.text("Voltage of Pack 5")),//
+
+		
+		// Sensata ID: 48338...48342
+		// Name: PARALLEL_PACKS_PPAIDx_PACK_VOLTAGE
+		// Modbus register: 
+		// Type: float64
+		// Unit: -	
+		PARALLEL_PACKS_PPAID1_PACK_VOLTAGE(Doc.of(DOUBLE)
+				.accessMode(READ_ONLY) //
+				.text("Voltage of Pack 1")),//
+		
+		PARALLEL_PACKS_PPAID2_PACK_VOLTAGE(Doc.of(DOUBLE)
+				.accessMode(READ_ONLY) //
+				.text("Voltage of Pack 2")),//
+		
+		PARALLEL_PACKS_PPAID3_PACK_VOLTAGE(Doc.of(DOUBLE)
+				.accessMode(READ_ONLY) //
+				.text("Voltage of Pack 3")),//
+		
+		PARALLEL_PACKS_PPAID4_PACK_VOLTAGE(Doc.of(DOUBLE)
+				.accessMode(READ_ONLY) //
+				.text("Voltage of Pack 4")),//
+		
+		PARALLEL_PACKS_PPAID5_PACK_VOLTAGE(Doc.of(DOUBLE)
+				.accessMode(READ_ONLY) //
+				.text("Voltage of Pack 5")),//
+		
 		
 		// Sensata ID: 48604
 		// Name: PARALLEL_PACKS_REQUEST_RELAY_STATE

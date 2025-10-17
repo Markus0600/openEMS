@@ -44,14 +44,16 @@ import io.openems.edge.bridge.modbus.api.element.FloatQuadruplewordElement;
 import io.openems.edge.bridge.modbus.api.element.SignedWordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;		
 import io.openems.edge.bridge.modbus.api.element.SignedDoublewordElement;																		   
-import io.openems.edge.bridge.modbus.api.element.UnsignedDoublewordElement;	
-
+import io.openems.edge.bridge.modbus.api.element.UnsignedDoublewordElement;
+import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC6WriteRegisterTask;
+import io.openems.edge.common.channel.DoubleReadChannel;
 //import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.channel.ShortReadChannel;
+import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.ComponentManager;														 
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;												   
@@ -80,8 +82,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	
 	//Heart Beat for Sensata BMS Keep Alive
 	private static final int DEFAULT_HEART_BEAT = 1;
-	
-	private boolean enableBalancing = false;
 	
 //	private static final int DEADBAND = 0;
 
@@ -125,7 +125,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			return;
 		}
 		this.config = config;
-		this.enableBalancing = config.enable_balancing();
 	    this.batteryProtection = BatteryProtection.create(this) //
 	            .applyBatteryProtectionDefinition(new BatteryProtectionDefinition(), this.componentManager) //
 	            .build();
@@ -190,38 +189,26 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private static final int PARALLEL_PACKS_PPAID9_RELAY_SEQUENCE = 433;
 	private static final int PARALLEL_PACKS_PPAID10_RELAY_SEQUENCE = 434;
 	
-//	private static final int PARALLEL_PACKS_PPAID1_PACK_CURRENT = 440;
-//	private static final int PARALLEL_PACKS_PPAID2_PACK_CURRENT = 441;
-//	private static final int PARALLEL_PACKS_PPAID3_PACK_CURRENT = 442;
-//	private static final int PARALLEL_PACKS_PPAID4_PACK_CURRENT = 443;
-//	private static final int PARALLEL_PACKS_PPAID5_PACK_CURRENT = 444;
-//	private static final int PARALLEL_PACKS_PPAID6_PACK_CURRENT = 455;
-//	private static final int PARALLEL_PACKS_PPAID7_PACK_CURRENT = 456;
-//	private static final int PARALLEL_PACKS_PPAID8_PACK_CURRENT = 457;
-//	private static final int PARALLEL_PACKS_PPAID9_PACK_CURRENT = 458;
-//	private static final int PARALLEL_PACKS_PPAID10_PACK_CURRENT = 459;
+	private static final int PARALLEL_PACKS_PPAID1_PACK_CURRENT = 440;
+	private static final int PARALLEL_PACKS_PPAID2_PACK_CURRENT = 450;
+	private static final int PARALLEL_PACKS_PPAID3_PACK_CURRENT = 460;
+	private static final int PARALLEL_PACKS_PPAID4_PACK_CURRENT = 470;
+	private static final int PARALLEL_PACKS_PPAID5_PACK_CURRENT = 480;
+
 	
-//	private static final int PARALLEL_PACKS_PPAID1_PACK_VOLTAGE = 450;
-//	private static final int PARALLEL_PACKS_PPAID2_PACK_VOLTAGE = 451;
-//	private static final int PARALLEL_PACKS_PPAID3_PACK_VOLTAGE = 452;
-//	private static final int PARALLEL_PACKS_PPAID4_PACK_VOLTAGE = 453;
-//	private static final int PARALLEL_PACKS_PPAID5_PACK_VOLTAGE = 454;
-//	private static final int PARALLEL_PACKS_PPAID6_PACK_VOLTAGE = 445;
-//	private static final int PARALLEL_PACKS_PPAID7_PACK_VOLTAGE = 446;
-//	private static final int PARALLEL_PACKS_PPAID8_PACK_VOLTAGE = 447;
-//	private static final int PARALLEL_PACKS_PPAID9_PACK_VOLTAGE = 448;
-//	private static final int PARALLEL_PACKS_PPAID10_PACK_VOLTAGE = 449;
+	private static final int PARALLEL_PACKS_PPAID1_PACK_VOLTAGE = 490;
+	private static final int PARALLEL_PACKS_PPAID2_PACK_VOLTAGE = 500;
+	private static final int PARALLEL_PACKS_PPAID3_PACK_VOLTAGE = 510;
+	private static final int PARALLEL_PACKS_PPAID4_PACK_VOLTAGE = 520;
+	private static final int PARALLEL_PACKS_PPAID5_PACK_VOLTAGE = 530;
+
 	
 
 	
 		
-	// Modbus addresses used for communication with Sensata BMS - write only
-	//private static final int REQUEST_RELAY_STATE 		= 100;
-	//private static final int INHIBIT_BALANCING			= 120;
-	private static final int HEART_BEAT 				= 301;
-	
-	//for parallel mode
-	private static final int PARALLEL_PACKS_REQUEST_RELAY_STATE  		= 300;
+	// Modbus addresses used for communication with Sensata BMS - write only	
+	private static final int PARALLEL_PACKS_REQUEST_RELAY_STATE  		= 600;
+	private static final int HEART_BEAT 				= 601;
 
 	@Override
 	protected ModbusProtocol defineModbusProtocol() {
@@ -429,10 +416,66 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 						Priority.LOW, //
 						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID10_RELAY_SEQUENCE, new UnsignedWordElement(PARALLEL_PACKS_PPAID10_RELAY_SEQUENCE)) //
 				), //
+				
+				
+				//Voltages of all 5 Racks
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID1_PACK_VOLTAGE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID1_PACK_VOLTAGE, new FloatQuadruplewordElement(PARALLEL_PACKS_PPAID1_PACK_VOLTAGE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID2_PACK_VOLTAGE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID2_PACK_VOLTAGE, new FloatQuadruplewordElement(PARALLEL_PACKS_PPAID2_PACK_VOLTAGE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID3_PACK_VOLTAGE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID3_PACK_VOLTAGE, new FloatQuadruplewordElement(PARALLEL_PACKS_PPAID3_PACK_VOLTAGE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID4_PACK_VOLTAGE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID4_PACK_VOLTAGE, new FloatQuadruplewordElement(PARALLEL_PACKS_PPAID4_PACK_VOLTAGE)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID5_PACK_VOLTAGE, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID5_PACK_VOLTAGE, new FloatQuadruplewordElement(PARALLEL_PACKS_PPAID5_PACK_VOLTAGE)) //
+				), //
+				
+				
+				//Current of all 5 Racks
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID1_PACK_CURRENT, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID1_PACK_CURRENT, new FloatQuadruplewordElement(PARALLEL_PACKS_PPAID1_PACK_CURRENT)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID2_PACK_CURRENT, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID2_PACK_CURRENT, new FloatQuadruplewordElement(PARALLEL_PACKS_PPAID2_PACK_CURRENT)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID3_PACK_CURRENT, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID3_PACK_CURRENT, new FloatQuadruplewordElement(PARALLEL_PACKS_PPAID3_PACK_CURRENT)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID4_PACK_CURRENT, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID4_PACK_CURRENT, new FloatQuadruplewordElement(PARALLEL_PACKS_PPAID4_PACK_CURRENT)) //
+				), //
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_PPAID5_PACK_CURRENT, //
+						Priority.LOW, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_PPAID5_PACK_CURRENT, new FloatQuadruplewordElement(PARALLEL_PACKS_PPAID5_PACK_CURRENT)) //
+				), //
 
 				
 				// Values required for Sensata itself - write only
-				new FC6WriteRegisterTask(//
+				new FC16WriteRegistersTask(//
 						PARALLEL_PACKS_REQUEST_RELAY_STATE, //
 						m(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE, new UnsignedWordElement(PARALLEL_PACKS_REQUEST_RELAY_STATE)) //
 				), //
@@ -452,40 +495,47 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			return;
 		}
 		
-//		//TODO Hier wahrscheinlich schauen, welches Rack verbunden ist und dann von diesen die Spannung nehmen und Mittelwert bilden (sollten relativ gleich sein)
-//		ShortReadChannel relaySequence[] = {
-//				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE),
-//				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE),
-//				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE),
-//				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE),
-//				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE)
-//		};
-//		// ToDo: Achtung: hier dann die richtigen Werte vom Bus holen, wie mit den Relays.
-//		int iVoltages[] = {
-//				761,
-//				759,
-//				762,
-//				760,
-//				761
-//		};
-//		ShortReadChannel numPacks = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_CURRENT_CONNECTIONS);;
-//
-//		// Prüfen, ob die Anzahl der Packs schon da sind, sonst gibt's nur Fehler weiter unten.
-//		if(numPacks.value().get() != null) {
-//		
-//			int iSum = 0, iCount = 0;
-//			for (int i= 0; (i<relaySequence.length) && (i<iVoltages.length); i++) {
-//				// ToDo: Achtung: Prüfung auf Relay-Sequenz nicht 0 OK?
-//				if(relaySequence[i].value().get() > 0) {
-//					iSum = iSum + iVoltages[i];
-//					iCount++;
-//				}
-//			}
-//			double dAvg = ((double)iSum) / ((double)iCount);
-//			
-//			// Jetzt mit der Hand den Battery.VOLTAGE schreiben...
-//			// ToDo.
-//		}
+		ShortReadChannel relaySequence[] = {
+				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE),
+				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE),
+				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE),
+				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE),
+				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE)
+		};
+		
+		DoubleReadChannel dVoltages[] = {
+				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID1_PACK_VOLTAGE),
+				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID2_PACK_VOLTAGE),
+				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID3_PACK_VOLTAGE),
+				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID4_PACK_VOLTAGE),
+				this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID5_PACK_VOLTAGE)
+		};
+		
+		ShortReadChannel numPacks = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_CURRENT_CONNECTIONS); 
+
+		// Prüfen, ob die Anzahl der Packs schon da sind, sonst gibt's nur Fehler weiter unten.
+		if(numPacks.value().isDefined() && numPacks.value().get() != null) {
+		
+			double dSum = 0;
+			int iCount = 0;
+			
+			for (int i= 0; (i<relaySequence.length) && (i<dVoltages.length); i++) {
+				// ToDo: Achtung: Prüfung auf Relay-Sequenz nicht 0 OK?
+				if(relaySequence[i].value().isDefined() &&
+						relaySequence[i].value().get() != null &&
+						relaySequence[i].value().get() > 0 &&
+						dVoltages[i].value().isDefined() &&
+						dVoltages[i].value().get() != null ) {
+					dSum += dVoltages[i].value().get();
+					iCount++;
+				}
+			}
+			double dAvg = (iCount > 0) ? (dSum / (double)iCount) : 0;
+			this.log.info("Voltage for Battery Channel: {}", dAvg);
+			
+			//write voltage channel with avg value 
+			this.channel(Battery.ChannelId.VOLTAGE).setNextValue(dAvg);		
+		}
 		
 		switch(event.getTopic()) {
 			case EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE -> {
@@ -582,27 +632,24 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 
 
 		try {
+			//0=idle, 1=charge, 2=discharge
 			requestRelayState = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE);
-//			heartbeatChannel = this.channel(SensataBms.ChannelId.HEART_BEAT);
-//			inhibitBalancingChannel = this.channel(SensataBms.ChannelId.INHIBIT_BALANCING);
 			
+//			heartbeatChannel = this.channel(SensataBms.ChannelId.HEART_BEAT);
+			
+			//0=none, 1=inactive, 2=sequence1, 3=sequence2, 4=error
 			relaySequence1 = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE);
 			relaySequence2 = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE);
 			relaySequence3 = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE);
 			relaySequence4 = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE);
 			relaySequence5 = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE);
+			
 			numPacks = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_CURRENT_CONNECTIONS);
 			
-//			relaySequenceCompleted = this.channel(SensataBms.ChannelId.RELAY_SEQUENCE_COMPLETED);
-
-			
+	
 //			heartbeatChannel.setNextWriteValue(DEFAULT_HEART_BEAT);
 //			this.logInfo(this.log, "HeartBeat: " + DEFAULT_HEART_BEAT);
 			
-//		    inhibitBalancingChannel.setNextWriteValue(this.enableBalancing ? 0 : 1);
-		    this.logInfo(this.log, "Balancing is " + (this.enableBalancing ? "enabled" : "disabled"));
-			
-//		} catch (IllegalArgumentException | OpenemsNamedException e1) {		
 		} catch (IllegalArgumentException e1) {
 			this.logError(this.log, "Setting requestRelayState/relaySequence channels failed: " + e1.getMessage());
 			return;
@@ -646,11 +693,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		return this.latestEssSetpoint;
 	}
 	
-	
-	@Override
-	public boolean getEnableBalancing() {
-		return this.enableBalancing;
-	}
 
 //	@Override
 //	public int getDeadbandW() {

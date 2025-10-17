@@ -17,21 +17,21 @@ public class GoRunningHandler extends StateHandler<State, Context> {
 	@Override
 	protected void onEntry(Context context) throws OpenemsNamedException {
 		this.log.info("Entering GO_RUNNING state - preparing battery for operation");
+
 //		var battery = context.getParent();
 		
-//		// Ensure battery is set to START when entering GO_RUNNING
-//		battery._setStartStop(StartStop.START);
 	}
 
 	@Override
 	public State runAndGetNextState(Context context) throws OpenemsNamedException {
 		var battery = context.getParent();
 		
-		int relay1 = context.getRelaySequence1();
-		int relay2 = context.getRelaySequence2();
-		int relay3 = context.getRelaySequence3();
-		int relay4 = context.getRelaySequence4();
-		int relay5 = context.getRelaySequence5();
+		//0=none, 1=inactive, 2=sequence1, (3=sequence2), 4=error
+//		int relay1 = context.getRelaySequence1();
+//		int relay2 = context.getRelaySequence2();
+//		int relay3 = context.getRelaySequence3();
+//		int relay4 = context.getRelaySequence4();
+//		int relay5 = context.getRelaySequence5();
 		
 		if(context.numPacks.value().get() == null) {
 			return State.GO_RUNNING;
@@ -43,6 +43,7 @@ public class GoRunningHandler extends StateHandler<State, Context> {
 		int iNumZeros = 0;
 		int iNumOnes = 0;
 		int iNumTwos = 0;
+		int iNumFours = 0; //prepared for Error evaluation
 		
 		for (int i= 0; i<relay.length; i++) {
 			if(relay[i] == 0) {
@@ -54,9 +55,12 @@ public class GoRunningHandler extends StateHandler<State, Context> {
 			if(relay[i] == 2) {
 				iNumTwos++;
 			}
+			if(relay[i] == 4) {
+				iNumFours++;
+			}
 		}
 		
-		this.log.info("Current relay sequence from BMS: {},{},{},{},{} | 0: {}, 1: {}, 2: {} | packs: {}", relay1, relay2, relay3, relay4, relay5, iNumZeros, iNumOnes, iNumTwos, iNumPacks);
+		this.log.info("Current relay sequence from BMS: {},{},{},{},{} | 0: {}, 1: {}, 2: {} | packs: {}", relay[0], relay[1], relay[2], relay[3], relay[4], iNumZeros, iNumOnes, iNumTwos, iNumPacks);
 		
 		// Check for faults - safety first
 		if (battery.hasFaults()) {
@@ -64,36 +68,21 @@ public class GoRunningHandler extends StateHandler<State, Context> {
 			return State.ERROR;
 		}
 		
-		if((iNumTwos >= 1) && (iNumZeros <= (5-iNumPacks))) {
-			this.log.info("At least one relay in Sequence {} - transition to RUNNING", iNumTwos);
-			context.setRequestRelayState(ParallelPack.DISCHARGE);
-	        return State.RUNNING;
-		} else if((iNumOnes >= 1) && (iNumZeros <= (5-iNumPacks))) {
-			context.setRequestRelayState(ParallelPack.DISCHARGE);
-			this.log.info("BMS reports IDLE, requesting DISCHARGE for precharge - transitioning to RUNNING");
-		} else {
+		
+		//wenn eine oder mehr als eine zwei vorhanden UND Anzahl 0 kleiner gleich vorhandene Packs
+//		if((iNumTwos >= 1) && (iNumZeros == 0)) {
+		if((iNumTwos >= 1) && (iNumZeros <= (relay.length - iNumPacks))) {
+			this.log.info("At least one relay in Sequence {} - setting relay in IDLE", iNumTwos);
 			context.setRequestRelayState(ParallelPack.IDLE);
+			
+		//wenn mind. 1 in IDLE UND Anzahl Null kleiner gleich restlichen verbunden Racks		
+		} else if((iNumOnes >= 1) && (iNumZeros <= (relay.length - iNumPacks))) {
+			this.log.info("BMS reports IDLE - transitioning to RUNNING");
+			return State.RUNNING;
+		} else {
 			this.log.warn("Relay states unknown - waiting for valid data");
-		}
-		
-//		int maxRelayState = Math.max(relay1, Math.max(relay2, Math.max(relay3, Math.max(relay4, relay5))));
-//		int minRelayState = Math.min(relay1, Math.min(relay2, Math.min(relay3, Math.min(relay4, relay5))));
-//		
-//		if ((maxRelayState == 1) && (minRelayState != 0)) {
-//			context.setRequestRelayState(ParallelPack.DISCHARGE);
-//			this.log.info("BMS reports IDLE, requesting DISCHARGE for precharge - transitioning to RUNNING");
-//		}else if (maxRelayState >= 2 && (minRelayState != 0)) {
-//			this.log.info("At least one relay in Sequence {} - transition to RUNNING", maxRelayState);
-//	        return State.RUNNING;
-//		}else if (relay1 == 0
-//					|| relay2 == 0
-//					|| relay3 == 0
-//					|| relay4 == 0
-//					|| relay5 == 0) {
-//	        this.log.warn("Relay states unknown - waiting for valid data");
-//	    }
-
-		
+		}				
+	
 		return State.GO_RUNNING;
 	}
 }
