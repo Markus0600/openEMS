@@ -45,11 +45,9 @@ import io.openems.edge.bridge.modbus.api.element.SignedWordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;		
 import io.openems.edge.bridge.modbus.api.element.SignedDoublewordElement;																		   
 import io.openems.edge.bridge.modbus.api.element.UnsignedDoublewordElement;
-import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC6WriteRegisterTask;
 import io.openems.edge.common.channel.DoubleReadChannel;
-//import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.channel.ShortReadChannel;
@@ -81,9 +79,8 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private BatteryProtection batteryProtection = null;
 	
 	//Heart Beat for Sensata BMS Keep Alive
-	private static final int DEFAULT_HEART_BEAT = 1;
+//	private static final int DEFAULT_HEART_BEAT = 1;
 	
-//	private static final int DEADBAND = 0;
 
 	// ESS setpoint tracking
 	private volatile int latestEssSetpoint = 0;
@@ -157,6 +154,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private static final int PARALLEL_PACKS_AGGREGATED_SOH_TOTAL = 320;
 	private static final int PARALLEL_PACKS_AGGREGATED_CAPACITY_AVAILABLE = 330;
 	private static final int PARALLEL_PACKS_AGGREGATED_CAPACITY_TOTAL = 332;
+	
 	private static final int PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT = 340;
 	private static final int PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_DISCHARGE_MODE = 350;
 	private static final int PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_CHARGE_MODE = 351;
@@ -164,15 +162,19 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private static final int PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_CHARGE = 353;
 	private static final int PARALLEL_PACKS_AGGREGATED_DCLI = 360;
 	private static final int PARALLEL_PACKS_AGGREGATED_DCLO = 370;
+	
 	private static final int PARALLEL_PACKS_AGGREGATED_BALANCING_STATUS = 380;
 	private static final int PARALLEL_PACKS_AGGREGATED_CONTACTOR_WELD_STATUS = 381;
+	
 	private static final int PARALLEL_PACKS_AGGREGATED_MIN_CELL_TEMPERATURE = 390;
 	private static final int PARALLEL_PACKS_AGGREGATED_MAX_CELL_TEMPERATURE = 391;
 	private static final int PARALLEL_PACKS_AGGREGATED_MIN_CELL_VOLTAGE = 400;
+	
 	private static final int PARALLEL_PACKS_AGGREGATED_MAX_CELL_VOLTAGE = 401;
 	private static final int PARALLEL_PACKS_AGGREGATED_CHARGE_COMPLETE_STATUS = 410;
 	private static final int PARALLEL_PACKS_AGGREGATED_SYSTEM_STATE = 411;
 	private static final int PARALLEL_PACKS_AGGREGATED_NUMBER_CURRENT_CONNECTIONS = 412;
+	
 	private static final int PARALLEL_PACKS_AGGREGATED_MIN_CELL_TEMPERATURE_INDEX = 413;
 	private static final int PARALLEL_PACKS_AGGREGATED_MAX_CELL_TEMPERATURE_INDEX = 414;
 	private static final int PARALLEL_PACKS_AGGREGATED_MIN_CELL_VOLTAGE_INDEX = 415;
@@ -203,9 +205,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private static final int PARALLEL_PACKS_PPAID5_PACK_VOLTAGE = 530;
 
 	
-
-	
-		
 	// Modbus addresses used for communication with Sensata BMS - write only	
 	private static final int PARALLEL_PACKS_REQUEST_RELAY_STATE  		= 600;
 	private static final int HEART_BEAT 				= 601;
@@ -475,7 +474,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 
 				
 				// Values required for Sensata itself - write only
-				new FC16WriteRegistersTask(//
+				new FC6WriteRegisterTask(//
 						PARALLEL_PACKS_REQUEST_RELAY_STATE, //
 						m(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE, new UnsignedWordElement(PARALLEL_PACKS_REQUEST_RELAY_STATE)) //
 				), //
@@ -547,7 +546,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				this.log.info("Did Statemachine, decision for Charging");
 				this.handleStateMachine();
 				this.updateLatestEssSetpointFromEssChannel();
-//				this.decisionForChargeDischarge(latestEssSetpoint);
 				break;
 			}
 		}
@@ -581,37 +579,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		}
 	}
 	
-//	/**
-//	 * Decides if Charge or Discharge. 
-//	 */
-//	
-//	private void decisionForChargeDischarge(int powerSetpoint) {
-//		
-//		powerSetpoint = this.getLatestEssSetpointW();
-//		this.log.info("Latest Setpoint from ESS {}", powerSetpoint);
-//	
-//		ParallelPack desired = ((powerSetpoint < 0)? ParallelPack.CHARGE : ParallelPack.DISCHARGE);
-//		if(powerSetpoint < 0) {
-//			desired = ParallelPack.CHARGE;
-//		} else if(powerSetpoint > 0) {
-//			desired = ParallelPack.DISCHARGE;
-//		} else {
-//			desired = ParallelPack.IDLE;
-//		}
-//		
-//		IntegerWriteChannel parallelPackRequestRelay = null;
-//		
-//		try {
-//			
-//			parallelPackRequestRelay = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE );
-//			parallelPackRequestRelay.setNextWriteValue(desired.getValue());
-//			this.log.info("Requestet Relay State: {}", desired);
-//			
-//			}catch (OpenemsNamedException | IllegalArgumentException e1) {
-//			this.logError(this.log, "Could not send Paralle Packs Relay Request" + e1.getMessage());
-//		}
-//	}
-
 	/**
 	 * Handles the State-Machine.
 	 */
@@ -619,7 +586,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		
 		IntegerWriteChannel requestRelayState = null;
 //		IntegerWriteChannel heartbeatChannel = null;
-//		IntegerWriteChannel inhibitBalancingChannel = null;
 		
 		ShortReadChannel relaySequence1 = null;
 		ShortReadChannel relaySequence2 = null;
@@ -627,13 +593,11 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		ShortReadChannel relaySequence4 = null;
 		ShortReadChannel relaySequence5 = null;
 		ShortReadChannel numPacks = null;
-		
-//		IntegerReadChannel relaySequenceCompleted = null;
-
 
 		try {
 			//0=idle, 1=charge, 2=discharge
 			requestRelayState = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE);
+			this.log.info("State from request Relay: {}",requestRelayState );
 			
 //			heartbeatChannel = this.channel(SensataBms.ChannelId.HEART_BEAT);
 			
@@ -692,12 +656,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	public int getLatestEssSetpointW() {
 		return this.latestEssSetpoint;
 	}
-	
-
-//	@Override
-//	public int getDeadbandW() {
-//		return DEADBAND;
-//	}
 
 	@Override
 	public String debugLog() {
@@ -720,12 +678,13 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_CHARGE).value().asString()+ " bal. stat.: "
 				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_BALANCING_STATUS).value().asString()+ " contactor: "
 				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_CONTACTOR_WELD_STATUS).value().asString()+ " sequence: "
-				+this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE).value().asString()
-				+this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE).value().asString()
-				+this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE).value().asString()
-				+this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE).value().asString()
-				+this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE).value().asString()+ " actual system state: "
-				+this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_SYSTEM_STATE).value().asString()
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE).value().asString()
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE).value().asString()
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE).value().asString()
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE).value().asString()
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE).value().asString()+ " actual system state: "
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_SYSTEM_STATE).value().asString()+ " Request Relay State: " 
+				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE).value().asString()
 				;
 	}
  		   										   

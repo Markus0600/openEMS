@@ -27,6 +27,7 @@ public class Context extends AbstractContext<SensataBms> {
 
 	public Context(SensataBms parent, IntegerWriteChannel RequestRelayState, ShortReadChannel RelaySequence1, ShortReadChannel RelaySequence2, ShortReadChannel RelaySequence3, ShortReadChannel RelaySequence4, ShortReadChannel RelaySequence5, ShortReadChannel NumPacks) {
 		super(parent);
+		
 		this.RequestRelayState = RequestRelayState;
 		
 		this.RelaySequence1 = RelaySequence1;
@@ -34,9 +35,9 @@ public class Context extends AbstractContext<SensataBms> {
 		this.RelaySequence3 = RelaySequence3;
 		this.RelaySequence4 = RelaySequence4;
 		this.RelaySequence5 = RelaySequence5;
+		
 		this.numPacks = NumPacks;
 		
-//		this.RelaySequenceCompleted = RelaySequenceCompleted;
 		this.currentRelayState = ParallelPack.IDLE;
 	}
 	
@@ -46,21 +47,15 @@ public class Context extends AbstractContext<SensataBms> {
 		
 		// Null pointer check
 		if (this.RequestRelayState == null) {
-			this.logInfo(this.log,
-					"Request Relay state channel not provided to State Machine context. Cannot switch state.");
+			this.logInfo(this.log, "Request Relay state channel not provided to State Machine context. Cannot switch state.");
 			return;
 		}
 		
 		// Range check
-		if(
-				(requestRelayState != ParallelPack.IDLE)
-				&& (requestRelayState != ParallelPack.CHARGE)
-				&& (requestRelayState != ParallelPack.DISCHARGE)
-
-				)
-		{
-			this.logInfo(this.log,
-					"State currently not supported. Cannot switch state.");
+		if(requestRelayState != ParallelPack.IDLE
+			&& requestRelayState != ParallelPack.CHARGE
+			&& requestRelayState != ParallelPack.DISCHARGE){
+			this.logInfo(this.log, "State currently not supported. Cannot switch state.");
 			return;			
 		}
 		
@@ -68,14 +63,15 @@ public class Context extends AbstractContext<SensataBms> {
 		if(requestRelayState != currentRelayState) {
 			this.RequestRelayState.setNextWriteValue(requestRelayState.getValue());
 			currentRelayState = requestRelayState;
-			this.logInfo(this.log,
-					"New state requested: " + requestRelayState.toString());
+			this.logInfo(this.log, "New state requested: " + requestRelayState.toString());
 		}
+		
 		this.log.info("Context::setRequestRelayState finished.");
 
 	}
 	
     public ParallelPack getRequestRelayState() {
+    	this.log.debug("Current requested relay state: {}", this.currentRelayState.getName());
         return this.currentRelayState;
     }
 
@@ -130,18 +126,5 @@ public class Context extends AbstractContext<SensataBms> {
         }
         return ParallelPack.IDLE.getValue();
     }
-    
-    
-//    // Neue Methode zum Abfragen des Sequence-Completed-Status
-//    public boolean isRelaySequenceCompleted() {
-//        if (this.RelaySequenceCompleted == null) {
-//            return false;
-//        }
-//        var value = this.RelaySequenceCompleted.value();
-//        if (value.isDefined()) {
-//            return value.get() == 1; // 1 bedeutet "abgeschlossen"
-//        }
-//        return false;
-//    }
-
+   
 }

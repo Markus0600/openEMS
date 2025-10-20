@@ -2,6 +2,7 @@ package io.openems.edge.battery.sensatabms;
 
 import static io.openems.common.channel.AccessMode.READ_ONLY;
 import static io.openems.common.channel.AccessMode.WRITE_ONLY;
+import static io.openems.common.channel.AccessMode.READ_WRITE;
 import static io.openems.common.types.OpenemsType.SHORT;
 import static io.openems.common.types.OpenemsType.LONG;
 import static io.openems.common.types.OpenemsType.INTEGER;

@@ -37,9 +37,8 @@ public class RunningHandler extends StateHandler<State, Context> {
 			return State.ERROR;
 		}
 		
-		int powerSetpoint;
-		powerSetpoint = ((SensataBms) battery).getLatestEssSetpointW();
-		this.log.info("Latest Setpoint from ESS {}", powerSetpoint);
+		int powerSetpoint = ((SensataBms) battery).getLatestEssSetpointW();
+		this.log.info("Latest ESS Setpoint: {} W", powerSetpoint);
 		
 		ParallelPack desired;
 		
