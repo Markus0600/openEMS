@@ -285,9 +285,9 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_CHARGE, new UnsignedWordElement(PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_CHARGE)) //
 				), //
 				new FC3ReadRegistersTask(//
-						PARALLEL_PACKS_AGGREGATED_DCLI, //
+						PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT, //
 						Priority.LOW, //
-						m(BatteryProtection.ChannelId.BP_CHARGE_BMS, new FloatQuadruplewordElement(PARALLEL_PACKS_AGGREGATED_DCLI)) //
+						m(BatteryProtection.ChannelId.BP_CHARGE_BMS, new FloatQuadruplewordElement(PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT)) //
 				), //
 				new FC3ReadRegistersTask(//
 						PARALLEL_PACKS_AGGREGATED_DCLO, //
@@ -684,7 +684,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE).value().asString()
 				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE).value().asString()+ " actual system state: "
 				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_SYSTEM_STATE).value().asString()+ " Request Relay State: " 
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE).value().asString()
 				;
 	}
  		   										   

@@ -45,10 +45,13 @@ public class RunningHandler extends StateHandler<State, Context> {
 		if(powerSetpoint < 0) {
 			desired = ParallelPack.CHARGE;
 			this.log.info("ParallelPack in CHARGE");
-		} else {
+		} else if (powerSetpoint > 0) {
 			desired = ParallelPack.DISCHARGE;
 			this.log.info("ParallelPack in DISCHARGE");
-		}
+		} else
+			desired = ParallelPack.IDLE;
+			this.log.info("ParallelPack in IDLE");
+		
 		
 		if(context.getRequestRelayState() != desired) {
 			try {

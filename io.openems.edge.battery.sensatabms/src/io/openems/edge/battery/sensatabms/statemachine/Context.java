@@ -60,11 +60,9 @@ public class Context extends AbstractContext<SensataBms> {
 		}
 		
 		// Everything fine -> request new relay sequence.
-		if(requestRelayState != currentRelayState) {
 			this.RequestRelayState.setNextWriteValue(requestRelayState.getValue());
 			currentRelayState = requestRelayState;
 			this.logInfo(this.log, "New state requested: " + requestRelayState.toString());
-		}
 		
 		this.log.info("Context::setRequestRelayState finished.");
 
