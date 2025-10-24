@@ -153,13 +153,20 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 		// Modbus register: 360
 		// Type: float64
 		// Unit: A
+		
 
-		// ### already available in Battery channel -> DISCHARGE_MAX_CURRENT
 		// Sensata ID: 48549
 		// Name: PARALLEL_PACKS_AGGREGATED_DCLO
 		// Modbus register: 370
 		// Type: float64
 		// Unit: A
+		
+		
+		PARALLEL_PACKS_AGGREGATED_DCLO(Doc.of(DOUBLE) //
+				.accessMode(READ_ONLY) //
+				.text("DISCHARGE Current from ALL BMS detected")),
+
+
 
 		// Sensata ID: 48550
 		// Name: PARALLEL_PACKS_AGGREGATED_BALANCING_STATUS
@@ -357,6 +364,25 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 				.accessMode(READ_ONLY) //
 				.text("Voltage of Pack 5")),//
 		
+        // Warnings
+        PARALLEL_PACKS_CELL_OVER_VOLTAGE_WARNING(Doc.of(Level.WARNING).accessMode(READ_ONLY).text("Cell over voltage warning")),
+        PARALLEL_PACKS_CELL_UNDER_VOLTAGE_WARNING(Doc.of(Level.WARNING).accessMode(READ_ONLY).text("Cell under voltage warning")),
+        PARALLEL_PACKS_CELL_OVER_TEMPERATURE_WARNING(Doc.of(Level.WARNING).accessMode(READ_ONLY).text("Cell over temperature warning")),
+        PARALLEL_PACKS_CELL_UNDER_TEMPERATURE_WARNING(Doc.of(Level.WARNING).accessMode(READ_ONLY).text("Cell under temperature warning")),
+        PARALLEL_PACKS_CURRENT_IN_TOO_HIGH_WARNING(Doc.of(Level.WARNING).accessMode(READ_ONLY).text("Current in too high warning")),
+        PARALLEL_PACKS_CURRENT_OUT_TOO_HIGH_WARNING(Doc.of(Level.WARNING).accessMode(READ_ONLY).text("Current out too high warning")),
+        PARALLEL_PACKS_SOA_VIOLATION_WARNING(Doc.of(Level.WARNING).accessMode(READ_ONLY).text("SOA violation warning")),
+
+        // Faults
+
+        PARALLEL_PACKS_CELL_OVER_VOLTAGE_PROTECTION(Doc.of(Level.FAULT).accessMode(READ_ONLY).text("Cell over voltage protection")),
+        PARALLEL_PACKS_CELL_UNDER_VOLTAGE_PROTECTION(Doc.of(Level.FAULT).accessMode(READ_ONLY).text("Cell under voltage protection")),
+        PARALLEL_PACKS_CELL_OVER_TEMPERATURE_PROTECTION(Doc.of(Level.FAULT).accessMode(READ_ONLY).text("Cell over temperature protection")),
+        PARALLEL_PACKS_CELL_UNDER_TEMPERATURE_PROTECTION(Doc.of(Level.FAULT).accessMode(READ_ONLY).text("Cell under temperature protection")),
+        PARALLEL_PACKS_CURRENT_IN_TOO_HIGH_PROTECTION(Doc.of(Level.FAULT).accessMode(READ_ONLY).text("Current in too high protection")),
+        PARALLEL_PACKS_CURRENT_OUT_TOO_HIGH_PROTECTION(Doc.of(Level.FAULT).accessMode(READ_ONLY).text("Current out too high protection")),
+        PARALLEL_PACKS_SOA_VIOLATION_PROTECTION(Doc.of(Level.FAULT).accessMode(READ_ONLY).text("SOA violation protection")),
+		
 		
 		// Sensata ID: 48604
 		// Name: PARALLEL_PACKS_REQUEST_RELAY_STATE
@@ -433,19 +459,11 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 	}
 	
 	/**
-	 * Deadband [W] around 0 for direction decision. Default 300 W.
+	 * Current ESS State from Statemachine
 	 * 
 	 */
-	public default int getDeadbandW() {
-		return 300;
-	}
-	
-	/**
-	 * Get the Channel for Inhibit Balancing. Return false if not provided by the implementation
-	 * 
-	 */
-	public default boolean getEnableBalancing() {
-		return false;
+	public default int getLatestEssState() {
+		return 0;
 	}
 	
 }

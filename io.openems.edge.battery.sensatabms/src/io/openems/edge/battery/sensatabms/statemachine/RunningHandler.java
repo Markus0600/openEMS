@@ -24,12 +24,12 @@ public class RunningHandler extends StateHandler<State, Context> {
 		if (!battery.isStarted()) {
 			battery._setStartStop(StartStop.START);
 		}
+		
 	}
 
 	@Override
 	public State runAndGetNextState(Context context) throws OpenemsNamedException {
 		var battery = context.getParent();
-
 
 		// Check for faults - safety first
 		if (battery.hasFaults()) {
@@ -37,31 +37,41 @@ public class RunningHandler extends StateHandler<State, Context> {
 			return State.ERROR;
 		}
 		
+		int latestState = ((SensataBms) battery).getLatestEssState();
+		//Check if ess is started(12); if not do Discharge for Precharge
+		if(latestState != 12){
+			this.log.info("Battery is in Discharge for Precharging the inverter");
+			this.log.info("Latest ESS State: {}", latestState);
+			context.setRequestRelayState(ParallelPack.DISCHARGE);
+			return State.RUNNING;
+		}
+		
+		
 		int powerSetpoint = ((SensataBms) battery).getLatestEssSetpointW();
 		this.log.info("Latest ESS Setpoint: {} W", powerSetpoint);
 		
 		ParallelPack desired;
 		
-		if(powerSetpoint < 0) {
+		if(powerSetpoint <= 0) {
 			desired = ParallelPack.CHARGE;
 			this.log.info("ParallelPack in CHARGE");
-		} else if (powerSetpoint > 0) {
+		} else {
 			desired = ParallelPack.DISCHARGE;
 			this.log.info("ParallelPack in DISCHARGE");
-		} else
-			desired = ParallelPack.IDLE;
-			this.log.info("ParallelPack in IDLE");
-		
-		
-		if(context.getRequestRelayState() != desired) {
-			try {
-				context.setRequestRelayState(desired);
-				this.log.info("Updated relay state to {} based on Setpoint {}W", desired, powerSetpoint);
-			} catch (Exception e) {
-				this.log.info("Could not set relay state to {} this cycle. Will retry next cycle", desired);
-			}
 		}
 		
+//		}else {
+//			desired = ParallelPack.IDLE;
+//			this.log.info("ParallelPack in DISCHARGE");
+//		}
+		
+		try {
+			context.setRequestRelayState(desired);
+			this.log.info("Updated relay state to {} based on Setpoint {}W", desired, powerSetpoint);
+		} catch (Exception e) {
+			this.log.info("Could not set relay state to {} this cycle. Will retry next cycle", desired);
+		}
+				
 		
 		// Ensure battery stays started during operation
 		if (!battery.isStarted() && battery.getStartStopTarget() != StartStop.STOP) {

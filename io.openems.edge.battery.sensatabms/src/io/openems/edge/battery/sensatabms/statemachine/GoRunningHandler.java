@@ -38,7 +38,7 @@ public class GoRunningHandler extends StateHandler<State, Context> {
 		int countSeqNone = 0;
 		int countSeqInactive = 0;
 		int countSeq1 = 0;
-		int countSeqError = 0; //prepared for Error evaluation
+		int countSeqError = 0;
 		
 		for (int i= 0; i<relay.length; i++) {
 			if(relay[i] == 0) {

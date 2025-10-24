@@ -11,7 +11,40 @@ import io.openems.edge.common.type.TypeUtils;
  * static convenience functions to facilitate conversion.
  */
 public class ElementToChannelConverter {
+   // Warning
+   public static final ElementToChannelConverter TRUE_IF_1 = new ElementToChannelConverter(
+           // element -> channel
+           value -> {
+                   var intValue = TypeUtils.<Integer>getAsType(OpenemsType.INTEGER, value);
+                   if (intValue != null) {
+                           // If warning
+                           if (intValue == 1) {
+                                   return 1;
+                           }
+                   }
+                   return 0;
+           }, //
 
+           // channel -> element
+           value -> value);
+
+   // Fault
+   public static final ElementToChannelConverter TRUE_IF_2 = new ElementToChannelConverter(
+           // element -> channel
+           value -> {
+                   var intValue = TypeUtils.<Integer>getAsType(OpenemsType.INTEGER, value);
+                   if (intValue != null) {
+                           // If fault
+                           if (intValue == 2) {
+                                   return 1;
+                           }
+                   }
+                   return 0;
+           }, //
+
+           // channel -> element
+           value -> value);
+	 
 	/**
 	 * Converts directly 1-to-1 between Element and Channel.
 	 */
