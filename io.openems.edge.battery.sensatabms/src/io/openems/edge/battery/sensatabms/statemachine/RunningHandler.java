@@ -8,6 +8,7 @@ import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.statemachine.StateHandler;
+import io.openems.edge.battery.protection.BatteryProtection;
 import io.openems.edge.battery.sensatabms.ParallelPack;
 import io.openems.edge.battery.sensatabms.SensataBms;
 
@@ -37,33 +38,50 @@ public class RunningHandler extends StateHandler<State, Context> {
 			return State.ERROR;
 		}
 		
+		ParallelPack prevState = ((SensataBms) battery).getPrevState();
+		int chargeCurrent = ((SensataBms) battery).getChargeCurrent();
+		int dischargeCurrent = ((SensataBms) battery).getDischargeCurrent();
+		
 		int latestState = ((SensataBms) battery).getLatestEssState();
 		//Check if ess is started(12); if not do Discharge for Precharge
 		if(latestState != 12){
 			this.log.info("Battery is in Discharge for Precharging the inverter");
 			this.log.info("Latest ESS State: {}", latestState);
-			context.setRequestRelayState(ParallelPack.DISCHARGE);
+			context.setRequestRelayState(prevState);
 			return State.RUNNING;
 		}
-		
 		
 		int powerSetpoint = ((SensataBms) battery).getLatestEssSetpointW();
 		this.log.info("Latest ESS Setpoint: {} W", powerSetpoint);
 		
 		ParallelPack desired;
 		
-		if(powerSetpoint <= 0) {
-			desired = ParallelPack.CHARGE;
-			this.log.info("ParallelPack in CHARGE");
-		} else {
-			desired = ParallelPack.DISCHARGE;
-			this.log.info("ParallelPack in DISCHARGE");
-		}
-		
-//		}else {
-//			desired = ParallelPack.IDLE;
-//			this.log.info("ParallelPack in DISCHARGE");
-//		}
+		if(powerSetpoint < 0) {
+			if(chargeCurrent != 0) {
+				desired = ParallelPack.CHARGE;
+				this.log.info("ParallelPack in CHARGE");
+			} else {
+				this.log.info("Charge Current: {}" ,chargeCurrent);
+				((SensataBms) battery).setPrevState(ParallelPack.CHARGE);
+				desired = ParallelPack.IDLE;
+				return State.GO_RUNNING;
+			}
+		}else if (powerSetpoint > 0) {
+			if (dischargeCurrent != 0) {
+				desired = ParallelPack.DISCHARGE;
+				this.log.info("ParallelPack in DISCHARGE");	
+			} else {
+				this.log.info("Discharge Current: {}" ,dischargeCurrent);
+				((SensataBms) battery).setPrevState(ParallelPack.DISCHARGE);
+				desired = ParallelPack.IDLE;
+				return State.GO_RUNNING;
+			}
+		}else {
+				this.log.info("Powersetpoint is Zero");
+				return State.RUNNING;
+			}
+			
+
 		
 		try {
 			context.setRequestRelayState(desired);

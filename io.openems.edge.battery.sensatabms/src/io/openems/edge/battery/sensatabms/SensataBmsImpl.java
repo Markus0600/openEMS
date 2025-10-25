@@ -85,6 +85,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	// ESS setpoint tracking
 	private volatile int latestEssSetpoint = 0;
 	private volatile int latestEssState = 0;
+	private volatile ParallelPack prevState = ParallelPack.CHARGE;
 
 	@Reference
 	private ConfigurationAdmin cm;
@@ -464,7 +465,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				if(relaySequence[i].value().isDefined() &&
 						relaySequence[i].value().get() != null &&
 						//TODO Testen, da nur die BMS mit Relay Sequence2 berechnet werden sollen. vorher stand hier größer 0 -> auch die in IDLE werden mit berechnet -> falsche Spannung
-						relaySequence[i].value().get() == 2 &&
+						relaySequence[i].value().get() > 0 &&
 						dVoltages[i].value().isDefined() &&
 						dVoltages[i].value().get() != null ) {
 					dSum += dVoltages[i].value().get();
@@ -528,6 +529,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			this.latestEssSetpoint = 0;
 		}
 	}
+	
 	
 	/**
 	 * Reads the final ESS State via literal channel "StateMachine" from the
@@ -634,6 +636,26 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	@Override
 	public int getLatestEssState() {
 		return this.latestEssState;
+	}
+	
+	@Override
+	public ParallelPack getPrevState() {
+		return this.prevState;
+	}
+	
+	@Override
+	public ParallelPack setPrevState(ParallelPack state) {
+		this.prevState = state;
+		return state;
+	}
+	
+	@Override
+	public int getChargeCurrent() {
+		return (int) this.channel(BatteryProtection.ChannelId.BP_CHARGE_BMS).value().get();
+	}
+	@Override
+	public int getDischargeCurrent() {
+		return (int) this.channel(BatteryProtection.ChannelId.BP_DISCHARGE_BMS).value().get();
 	}
 
 

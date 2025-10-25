@@ -11,6 +11,7 @@ import static io.openems.common.types.OpenemsType.DOUBLE;
 
 //import io.openems.common.types.OpenemsType;
 import io.openems.edge.battery.api.Battery;
+import io.openems.edge.battery.protection.BatteryProtection;
 import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.component.OpenemsComponent;
@@ -463,6 +464,20 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 	 * 
 	 */
 	public default int getLatestEssState() {
+		return 0;
+	}
+	
+	public default ParallelPack getPrevState() {
+		return ParallelPack.IDLE;
+	}
+	public default ParallelPack setPrevState(ParallelPack state) {
+		return ParallelPack.IDLE;
+	}
+	
+	public default int getChargeCurrent() {
+		return 0;
+	}
+	public default int getDischargeCurrent() {
 		return 0;
 	}
 	
