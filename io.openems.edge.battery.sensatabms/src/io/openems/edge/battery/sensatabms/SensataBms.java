@@ -166,6 +166,10 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 		PARALLEL_PACKS_AGGREGATED_DCLO(Doc.of(DOUBLE) //
 				.accessMode(READ_ONLY) //
 				.text("DISCHARGE Current from ALL BMS detected")),
+		
+		PARALLEL_PACKS_AGGREGATED_DCLI(Doc.of(DOUBLE) //
+				.accessMode(READ_ONLY) //
+				.text("CHARGE Current from ALL BMS detected")),
 
 
 
@@ -321,23 +325,23 @@ public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 		// Unit: -	
 		PARALLEL_PACKS_PPAID1_PACK_CURRENT(Doc.of(DOUBLE)
 				.accessMode(READ_ONLY) //
-				.text("Voltage of Pack 1")),//
+				.text("Current of Pack 1")),//
 		
 		PARALLEL_PACKS_PPAID2_PACK_CURRENT(Doc.of(DOUBLE)
 				.accessMode(READ_ONLY) //
-				.text("Voltage of Pack 2")),//
+				.text("Current of Pack 2")),//
 		
 		PARALLEL_PACKS_PPAID3_PACK_CURRENT(Doc.of(DOUBLE)
 				.accessMode(READ_ONLY) //
-				.text("Voltage of Pack 3")),//
+				.text("Current of Pack 3")),//
 		
 		PARALLEL_PACKS_PPAID4_PACK_CURRENT(Doc.of(DOUBLE)
 				.accessMode(READ_ONLY) //
-				.text("Voltage of Pack 4")),//
+				.text("Current of Pack 4")),//
 		
 		PARALLEL_PACKS_PPAID5_PACK_CURRENT(Doc.of(DOUBLE)
 				.accessMode(READ_ONLY) //
-				.text("Voltage of Pack 5")),//
+				.text("Current of Pack 5")),//
 
 		
 		// Sensata ID: 48338...48342

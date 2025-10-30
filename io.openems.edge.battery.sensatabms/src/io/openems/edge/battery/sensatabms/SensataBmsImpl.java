@@ -52,6 +52,7 @@ import io.openems.edge.common.channel.DoubleReadChannel;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.channel.ShortReadChannel;
+import io.openems.edge.common.channel.ShortWriteChannel;
 import io.openems.edge.common.channel.EnumReadChannel;
 import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.ComponentManager;														 
@@ -79,7 +80,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private BatteryProtection batteryProtection = null;
 	
 	//Heart Beat for Sensata BMS Keep Alive
-//	private static final int DEFAULT_HEART_BEAT = 1;
+	private static final short DEFAULT_HEART_BEAT = 1;
 	
 
 	// ESS setpoint tracking
@@ -280,13 +281,19 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				new FC3ReadRegistersTask(//
 						PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT, //
 						Priority.HIGH, //
-						m(BatteryProtection.ChannelId.BP_CHARGE_BMS, new FloatQuadruplewordElement(PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT)) //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT, new FloatQuadruplewordElement(PARALLEL_PACKS_AGGREGATED_CHARGE_CURRENT)) //
 				), //
 				
 				new FC3ReadRegistersTask(//
 						PARALLEL_PACKS_AGGREGATED_DCLO, //
 						Priority.HIGH, //
 						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_DCLO, new FloatQuadruplewordElement(PARALLEL_PACKS_AGGREGATED_DCLO), INVERT) //
+				), //
+				
+				new FC3ReadRegistersTask(//
+						PARALLEL_PACKS_AGGREGATED_DCLI, //
+						Priority.HIGH, //
+						m(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_DCLI, new FloatQuadruplewordElement(PARALLEL_PACKS_AGGREGATED_DCLI)) //
 				), //
 				
 				new FC3ReadRegistersTask(//
@@ -464,7 +471,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			for (int i= 0; (i<relaySequence.length) && (i<dVoltages.length); i++) {
 				if(relaySequence[i].value().isDefined() &&
 						relaySequence[i].value().get() != null &&
-						//TODO Testen, da nur die BMS mit Relay Sequence2 berechnet werden sollen. vorher stand hier größer 0 -> auch die in IDLE werden mit berechnet -> falsche Spannung
 						relaySequence[i].value().get() > 0 &&
 						dVoltages[i].value().isDefined() &&
 						dVoltages[i].value().get() != null ) {
@@ -477,12 +483,20 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			this.channel(Battery.ChannelId.VOLTAGE).setNextValue(dAvg);
 			
 			//calculation current discharge channel with value for connected racks			
-			DoubleReadChannel dCurrent = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_DCLO);
+			DoubleReadChannel dDisCurrent = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_DCLO);
 			
-			if(dCurrent.value().isDefined() && dCurrent.value().get() != null) {
-				double dAvgCurrent = (iCount > 0) ? (dCurrent.value().get()/(double) iCount) : 0;
+			if(dDisCurrent.value().isDefined() && dDisCurrent.value().get() != null) {
+				double dAvgCurrent = (iCount > 0) ? (dDisCurrent.value().get()/(double) iCount) : 0;
 				this.channel(BatteryProtection.ChannelId.BP_DISCHARGE_BMS).setNextValue(dAvgCurrent);
 			}	
+			
+			//calculation current charge channel with value for connected racks			
+			DoubleReadChannel dChCurrent = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_DCLI);
+			
+			if(dChCurrent.value().isDefined() && dChCurrent.value().get() != null) {
+				double dAvgCurrent = (iCount > 0) ? (dChCurrent.value().get()/(double) iCount) : 0;
+				this.channel(BatteryProtection.ChannelId.BP_CHARGE_BMS).setNextValue(dAvgCurrent);
+			}
 		}
 		
 		switch(event.getTopic()) {
@@ -492,7 +506,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				break;
 			}
 			case EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE -> {
-				this.log.info("Did Statemachine, decision for Charging");
+				this.log.info("Did Statemachine");
 				this.handleStateMachine();
 				this.updateLatestEssSetpointFromEssChannel();
 				this.updateStateFromEssChannel();
@@ -566,7 +580,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private void handleStateMachine() {
 		
 		IntegerWriteChannel requestRelayState = null;
-//		IntegerWriteChannel heartbeatChannel = null;
 		
 		ShortReadChannel relaySequence1 = null;
 		ShortReadChannel relaySequence2 = null;
@@ -578,10 +591,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 		try {
 			//0=idle, 1=charge, 2=discharge
 			requestRelayState = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_REQUEST_RELAY_STATE);
-			this.log.info("State from request Relay: {}",requestRelayState );
-			
-//			heartbeatChannel = this.channel(SensataBms.ChannelId.HEART_BEAT);
-			
+
 			//0=none, 1=inactive, 2=sequence1, 3=sequence2, 4=error
 			relaySequence1 = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE);
 			relaySequence2 = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE);
@@ -591,15 +601,23 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			
 			numPacks = this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_CURRENT_CONNECTIONS);
 			
-	
-//			heartbeatChannel.setNextWriteValue(DEFAULT_HEART_BEAT);
-//			this.logInfo(this.log, "HeartBeat: " + DEFAULT_HEART_BEAT);
-			
 		} catch (IllegalArgumentException e1) {
 			this.logError(this.log, "Setting requestRelayState/relaySequence channels failed: " + e1.getMessage());
 			return;
 		}
-
+	
+		//Heartbeat for sleep mode activation
+		ShortWriteChannel heartbeatChannel = null;
+		
+		try {
+			heartbeatChannel = this.channel(SensataBms.ChannelId.HEART_BEAT);
+			heartbeatChannel.setNextWriteValue(DEFAULT_HEART_BEAT);
+			this.logInfo(this.log, "HeartBeat: " + DEFAULT_HEART_BEAT);
+		}catch (IllegalArgumentException | OpenemsNamedException e1) {
+			this.logError(this.log, "Setting Heart Beat failed: " +e1.getMessage());
+			return;
+		}
+			
 		var context = new Context(this, requestRelayState, relaySequence1,relaySequence2, relaySequence3, relaySequence4, relaySequence5, numPacks);
 		try {																		  
 			this.stateMachine.run(context);																					
