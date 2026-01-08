@@ -1,0 +1,3 @@
+= io.openems.edge.meter.schneider.pm5330
+
+https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.meter.schneider.pm5330[Source Code icon:github[]]

@@ -1,0 +1,9 @@
+eclipse.preferences.version=1
+encoding//src/io/openems/edge/meter/schneider/pm5330/Config.java=UTF-8
+encoding//src/io/openems/edge/meter/schneider/pm5330/PM5330.java=UTF-8
+encoding//src/io/openems/edge/meter/schneider/pm5330/PM5330Impl.java=UTF-8
+encoding//test/io/openems/edge/meter/schneider/pm5330/MyConfig.java=UTF-8
+encoding//test/io/openems/edge/meter/schneider/pm5330/PM5330ImplTest.java=UTF-8
+encoding/<project>=UTF-8
+encoding/bnd.bnd=UTF-8
+encoding/readme.adoc=UTF-8
