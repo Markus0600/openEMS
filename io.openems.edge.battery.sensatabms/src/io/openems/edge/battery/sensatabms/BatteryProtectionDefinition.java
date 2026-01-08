@@ -7,12 +7,12 @@ import io.openems.edge.common.linecharacteristic.PolyLine;
 public class BatteryProtectionDefinition implements io.openems.edge.battery.protection.BatteryProtectionDefinition {
 	@Override
 	public int getInitialBmsMaxEverChargeCurrent() {
-		return Integer.MAX_VALUE; // keine Begrenzung des BMS charge current
+		return Integer.MAX_VALUE;
 	}
 
 	@Override
 	public int getInitialBmsMaxEverDischargeCurrent() {
-		return Integer.MAX_VALUE; // keine Begrenzung des BMS discharge current
+		return Integer.MAX_VALUE;
 	}
 
 	// Over voltage Protection

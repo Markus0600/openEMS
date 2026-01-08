@@ -8,7 +8,6 @@ import io.openems.edge.battery.sensatabms.SensataBms;
 import io.openems.edge.battery.sensatabms.ParallelPack;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.channel.ShortReadChannel;
-import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.statemachine.AbstractContext;
 
 public class Context extends AbstractContext<SensataBms> {

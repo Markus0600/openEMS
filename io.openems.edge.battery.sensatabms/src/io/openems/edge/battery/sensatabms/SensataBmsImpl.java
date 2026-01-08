@@ -2,7 +2,6 @@ package io.openems.edge.battery.sensatabms;
 
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_MINUS_1;
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_MINUS_2;
-import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_3;
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.INVERT;
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.TRUE_IF_1;
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.TRUE_IF_2;
@@ -45,7 +44,6 @@ import io.openems.edge.bridge.modbus.api.element.FloatQuadruplewordElement;
 import io.openems.edge.bridge.modbus.api.element.SignedWordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;		
 import io.openems.edge.bridge.modbus.api.element.SignedDoublewordElement;																		   
-import io.openems.edge.bridge.modbus.api.element.UnsignedDoublewordElement;
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC6WriteRegisterTask;
 import io.openems.edge.common.channel.DoubleReadChannel;
@@ -54,7 +52,6 @@ import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.channel.ShortReadChannel;
 import io.openems.edge.common.channel.ShortWriteChannel;
 import io.openems.edge.common.channel.EnumReadChannel;
-import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.ComponentManager;														 
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;												   
@@ -194,12 +191,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 	private static final int PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE = 422;
 	private static final int PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE = 423;
 	private static final int PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE = 424;
-	
-	private static final int PARALLEL_PACKS_PPAID6_RELAY_SEQUENCE = 430;
-	private static final int PARALLEL_PACKS_PPAID7_RELAY_SEQUENCE = 431;
-	private static final int PARALLEL_PACKS_PPAID8_RELAY_SEQUENCE = 432;
-	private static final int PARALLEL_PACKS_PPAID9_RELAY_SEQUENCE = 433;
-	private static final int PARALLEL_PACKS_PPAID10_RELAY_SEQUENCE = 434;
 	
 	private static final int PARALLEL_PACKS_PPAID1_PACK_CURRENT = 440;
 	
@@ -418,8 +409,6 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 			      m(SensataBms.ChannelId.PARALLEL_PACKS_CELL_UNDER_TEMPERATURE_PROTECTION, new UnsignedWordElement(PARALLEL_PACKS_CELL_UNDER_TEMPERATURE), TRUE_IF_2), //
 			      m(SensataBms.ChannelId.PARALLEL_PACKS_CURRENT_IN_TOO_HIGH_PROTECTION, new UnsignedWordElement(PARALLEL_PACKS_CURRENT_IN_TOO_HIGH), TRUE_IF_2), //
 			      m(SensataBms.ChannelId.PARALLEL_PACKS_CURRENT_OUT_TOO_HIGH_PROTECTION, new UnsignedWordElement(PARALLEL_PACKS_CURRENT_OUT_TOO_HIGH), TRUE_IF_2) //
-			      //moved to task above for less read tasks
-//			      m(SensataBms.ChannelId.PARALLEL_PACKS_SOA_VIOLATION_PROTECTION, new UnsignedWordElement(PARALLEL_PACKS_SOA_VIOLATION), TRUE_IF_2) //
 			    ), //	
 			    
 			    
@@ -678,34 +667,8 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 
 
 	@Override
-	public String debugLog() {
-		 
-		return "Modbus Values: cap.:" + this.channel(Battery.ChannelId.CAPACITY).value().asString() + " max_Icharge: "
-				+ this.channel(BatteryProtection.ChannelId.BP_CHARGE_BMS).value().asString() + " max_Idischarge: "
-				+ this.channel(BatteryProtection.ChannelId.BP_DISCHARGE_BMS).value().asString() + " soc: "
-				+ this.channel(Battery.ChannelId.SOC).value().asString() + " soh: "
-				+ this.channel(Battery.ChannelId.SOH).value().asString() + " min_Vc: "
-				+ this.channel(Battery.ChannelId.MIN_CELL_VOLTAGE).value().asString() + " max_Vc: "
-				+ this.channel(Battery.ChannelId.MAX_CELL_VOLTAGE).value().asString() + " max_Temp: "
-				+ this.channel(Battery.ChannelId.MAX_CELL_TEMPERATURE).value().asString() +" min_Temp: "
-				+ this.channel(Battery.ChannelId.MIN_CELL_TEMPERATURE).value().asString() +" act State: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_STATE).value().asString()	+ " det. packs: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_CURRENTLY_DETECTED_PACKS).value().asString()+ " soc av.: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_SOC_AVAILABLE).value().asString()+ " num packs disch.: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_DISCHARGE_MODE).value().asString()+ " num packs charge: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_CHARGE_MODE).value().asString()+ " num missed disch.: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_DISCHARGE).value().asString()+ " num missed charge: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_NUMBER_PACKS_MISSED_CHARGE).value().asString()+ " bal. stat.: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_BALANCING_STATUS).value().asString()+ " contactor: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_CONTACTOR_WELD_STATUS).value().asString()+ " sequence: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID1_RELAY_SEQUENCE).value().asString()
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID2_RELAY_SEQUENCE).value().asString()
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID3_RELAY_SEQUENCE).value().asString()
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID4_RELAY_SEQUENCE).value().asString()
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_PPAID5_RELAY_SEQUENCE).value().asString()+ " actual system state: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_AGGREGATED_SYSTEM_STATE).value().asString()+ " Cell overvoltage warning: "
-				+ this.channel(SensataBms.ChannelId.PARALLEL_PACKS_CELL_OVER_VOLTAGE_WARNING).value().asString()  
-				;
+	public String debugLog() { 
+		return null  ;
 	}
  		   										   
 }

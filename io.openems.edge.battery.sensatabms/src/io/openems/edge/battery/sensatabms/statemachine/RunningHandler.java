@@ -5,10 +5,8 @@ import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.edge.battery.sensatabms.statemachine.StateMachine.State;
-import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.statemachine.StateHandler;
-import io.openems.edge.battery.protection.BatteryProtection;
 import io.openems.edge.battery.sensatabms.ParallelPack;
 import io.openems.edge.battery.sensatabms.SensataBms;
 
@@ -64,8 +62,6 @@ public class RunningHandler extends StateHandler<State, Context> {
 			} else {
 				this.log.info("Charge Current: {}" ,chargeCurrent);
 				((SensataBms) battery).setPrevState(ParallelPack.CHARGE);
-//				desired = ParallelPack.IDLE;
-//				return State.GO_RUNNING;
 				return State.RUNNING;
 			}
 		}else if (powerSetpoint > 0) {
@@ -75,8 +71,6 @@ public class RunningHandler extends StateHandler<State, Context> {
 			} else {
 				this.log.info("Discharge Current: {}" ,dischargeCurrent);
 				((SensataBms) battery).setPrevState(ParallelPack.DISCHARGE);
-//				desired = ParallelPack.IDLE;
-//				return State.GO_RUNNING;
 				return State.RUNNING;
 			}
 		}else {

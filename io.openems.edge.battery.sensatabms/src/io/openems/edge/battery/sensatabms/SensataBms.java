@@ -2,26 +2,19 @@ package io.openems.edge.battery.sensatabms;
 
 import static io.openems.common.channel.AccessMode.READ_ONLY;
 import static io.openems.common.channel.AccessMode.WRITE_ONLY;
-import static io.openems.common.channel.AccessMode.READ_WRITE;
 import static io.openems.common.types.OpenemsType.SHORT;
 import static io.openems.common.types.OpenemsType.LONG;
 import static io.openems.common.types.OpenemsType.INTEGER;
-import static io.openems.common.types.OpenemsType.FLOAT;
 import static io.openems.common.types.OpenemsType.DOUBLE;
 
-//import io.openems.common.types.OpenemsType;
 import io.openems.edge.battery.api.Battery;
-import io.openems.edge.battery.protection.BatteryProtection;
 import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.startstop.StartStop;
 import io.openems.edge.common.startstop.StartStoppable;
 
-import io.openems.common.channel.AccessMode;
 import io.openems.common.channel.Level;
-import io.openems.common.channel.Unit;
-//import io.openems.edge.battery.sensatabms.Status;
 
 public interface SensataBms extends Battery, OpenemsComponent, StartStoppable {
 
