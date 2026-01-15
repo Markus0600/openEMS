@@ -6,7 +6,7 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import io.openems.edge.common.startstop.StartStopConfig;
 
 @ObjectClassDefinition(//
-		name = "BMS sensata", //
+		name = "Sensata n3-BMS", //
 		description = "Implementation for sensata BMS. Caution: OpenEMS communicates with the BMS using a CAN-Modbus bridge, which must be configured properly.")
 @interface Config {
 

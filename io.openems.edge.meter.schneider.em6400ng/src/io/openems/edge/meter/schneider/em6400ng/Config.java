@@ -6,7 +6,7 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import io.openems.common.types.MeterType;
 
 @ObjectClassDefinition(//
-		name = "io.openems.edge.meter.schneider.EM6400NG", //
+		name = "Meter Schneider EM6400NG", //
 		description = "")
 @interface Config {
 
