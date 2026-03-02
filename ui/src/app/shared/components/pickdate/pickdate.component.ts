@@ -4,8 +4,8 @@ import { PopoverController } from "@ionic/angular";
 import { TranslateService } from "@ngx-translate/core";
 import { addDays, addMonths, addWeeks, addYears, differenceInDays, differenceInMilliseconds, endOfDay, endOfMonth, endOfWeek, endOfYear, isAfter, isBefore, isFuture, startOfDay, startOfMonth, startOfWeek, startOfYear, subDays, subMonths, subWeeks, subYears } from "date-fns";
 
-import { DefaultTypes } from "../../service/defaulttypes";
 import { Edge, Service } from "../../shared";
+import { DefaultTypes } from "../../type/defaulttypes";
 import { DateUtils } from "../../utils/date/dateutils";
 import { PickDatePopoverComponent } from "./popover/popover.component";
 
@@ -17,6 +17,7 @@ import { PickDatePopoverComponent } from "./popover/popover.component";
         ion-button.pickdate-styles {
             background: transparent !important;
             box-shadow: none !important;
+            white-space: nowrap;
         }
 
         ion-button.pickdate-styles::part(native) {
@@ -109,9 +110,9 @@ export class PickDateComponent implements OnInit, OnDestroy {
             case DefaultTypes.PeriodString.WEEK:
                 return isBefore(firstSetupProtocol, endOfWeek(subWeeks(service.historyPeriod.value.from, 1)));
             case DefaultTypes.PeriodString.MONTH:
-                return isBefore(firstSetupProtocol, endOfMonth(subWeeks(service.historyPeriod.value.from, 1)));
+                return isBefore(firstSetupProtocol, endOfMonth(subMonths(service.historyPeriod.value.from, 1)));
             case DefaultTypes.PeriodString.YEAR:
-                return isBefore(firstSetupProtocol, endOfYear(subWeeks(service.historyPeriod.value.from, 1)));
+                return isBefore(firstSetupProtocol, endOfYear(subYears(service.historyPeriod.value.from, 1)));
             case DefaultTypes.PeriodString.TOTAL:
                 return false;
             case DefaultTypes.PeriodString.CUSTOM: {

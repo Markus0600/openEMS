@@ -1,11 +1,13 @@
 // @ts-strict-ignore
-import { AfterViewChecked, Component, Input } from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, effect, ElementRef, HostListener, Input, Renderer2, untracked } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { ModalController } from "@ionic/angular";
 import { TranslateService } from "@ngx-translate/core";
+import { RouteService } from "src/app/shared/service/route.service";
 import { Edge, EdgeConfig, Service, Websocket } from "../../../shared";
-import { NavigationComponent } from "../navigation.component";
+import { NavigationComponent } from "../action-sheet-modal";
 import { NavigationService } from "../service/navigation.service";
+import { ViewUtils } from "./shared/shared";
 
 export enum Status {
     SUCCESS,
@@ -13,6 +15,9 @@ export enum Status {
     PENDING,
 }
 
+/**
+ * Always use conditionally rendering, this component doesnt wait for async events to be resolved first
+ */
 @Component({
     selector: "oe-navigation-view",
     templateUrl: "./view.html",
@@ -28,28 +33,44 @@ export enum Status {
     `],
     standalone: false,
 })
-export class NavigationPageComponent implements AfterViewChecked {
+export class NavigationPageComponent implements AfterViewInit {
 
     @Input() protected component: EdgeConfig.Component | null = null;
-    @Input() protected formGroup: FormGroup = new FormGroup({});
+    @Input() protected formGroup: FormGroup | null = null;
 
     protected contentHeight: number | null = null;
+    protected actionSheetModalHeight: number = 0;
 
     private edge: Edge | null = null;
 
     constructor(
         public modalController: ModalController,
-        private websocket: Websocket,
-        private service: Service,
+        protected service: Service,
         protected navigationService: NavigationService,
+        private websocket: Websocket,
         private translate: TranslateService,
+        private el: ElementRef,
+        private renderer: Renderer2,
+        private cdRef: ChangeDetectorRef,
+        private routeService: RouteService,
     ) {
         this.service.getCurrentEdge().then(edge => this.edge = edge);
+        const hostElement = el.nativeElement;
+        this.renderer.addClass(hostElement, "ion-page");
+
+        effect(() => {
+            const breakpoint = NavigationComponent.breakPoint();
+            if (breakpoint > NavigationComponent.INITIAL_BREAKPOINT) {
+                return;
+            }
+            this.contentHeight = ViewUtils.getViewHeightInPx(untracked(() => this.navigationService.position()));
+            this.actionSheetModalHeight = ViewUtils.getActionSheetModalHeightInVh(untracked(() => this.navigationService.position()));
+        });
     }
 
-
-    ngAfterViewChecked() {
-        this.contentHeight = this.calculateHeight();
+    @HostListener("window:resize", ["$event.target.innerHeight"])
+    private onResize(height: number) {
+        this.contentHeight = ViewUtils.getViewHeightInPx(untracked(() => this.navigationService.position()));
     }
 
     // Changes applied together
@@ -74,18 +95,22 @@ export class NavigationPageComponent implements AfterViewChecked {
         if (this.edge) {
             this.edge.updateComponentConfig(this.websocket, this.component.id, updateComponentArray)
                 .then(() => {
-                    this.service.toast(this.translate.instant("General.changeAccepted"), "success");
+                    this.service.toast(this.translate.instant("GENERAL.CHANGE_ACCEPTED"), "success");
                 }).catch(reason => {
-                    this.service.toast(this.translate.instant("General.changeFailed") + "\n" + reason.error.message, "danger");
+                    this.service.toast(this.translate.instant("GENERAL.CHANGE_FAILED") + "\n" + reason.error.message, "danger");
                 }).finally(() => this.service.stopSpinner("spinner"));
         }
         this.formGroup.markAsPristine();
     }
 
-    private calculateHeight(): number {
+    ngAfterViewInit() {
+        setTimeout(() => {
+            const viewHeight = ViewUtils.getViewHeightInPx(this.navigationService.position());
+            this.contentHeight = viewHeight;
+        }, 100);
+    }
 
-        // !IMPORTANT TODO: Calculate container height
-        return 100 - (this.navigationService.position == "bottom" ? (NavigationComponent.INITIAL_BREAKPOINT * 100) : 5);
+    protected onDomChange() {
+        this.contentHeight = ViewUtils.getViewHeightInPx(this.navigationService.position());
     }
 }
-

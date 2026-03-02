@@ -12,8 +12,6 @@ import { Edge, EdgeConfig, Service, Websocket } from "../../../../../../shared/s
 })
 export class Controller_Symmetric_TimeSlot_PeakShavingModalComponent implements OnInit {
 
-    private static readonly SELECTOR = "timeslotpeakshaving-modal";
-
     @Input() protected component: EdgeConfig.Component | null = null;
     @Input() protected edge: Edge | null = null;
 
@@ -36,6 +34,10 @@ export class Controller_Symmetric_TimeSlot_PeakShavingModalComponent implements 
             ])),
             rechargePower: new FormControl(this.component.properties.rechargePower, Validators.compose([
                 Validators.pattern("^(?:[1-9][0-9]*|0)$"),
+                Validators.required,
+            ])),
+            hysteresisSoc: new FormControl(this.component.properties.hysteresisSoc, Validators.compose([
+                Validators.pattern("^(100|[1-9]?[0-9])$"),
                 Validators.required,
             ])),
             slowChargePower: new FormControl((this.component.properties.slowChargePower) * -1),
@@ -67,45 +69,56 @@ export class Controller_Symmetric_TimeSlot_PeakShavingModalComponent implements 
     }
 
     applyChanges() {
-        if (this.edge != null) {
-            if (this.edge.roleIsAtLeast("owner")) {
-                const peakShavingPower = this.formGroup.controls["peakShavingPower"];
-                const rechargePower = this.formGroup.controls["rechargePower"];
-                if (peakShavingPower.valid && rechargePower.valid) {
-                    if (peakShavingPower.value >= rechargePower.value) {
-                        const updateComponentArray = [];
-                        Object.keys(this.formGroup.controls).forEach((element, index) => {
-                            if (this.formGroup.controls[element].dirty) {
-                                if (Object.keys(this.formGroup.controls)[index] == "slowChargePower") {
-                                    updateComponentArray.push({ name: Object.keys(this.formGroup.controls)[index], value: (this.formGroup.controls[element].value) * -1 });
-                                } else {
-                                    updateComponentArray.push({ name: Object.keys(this.formGroup.controls)[index], value: this.formGroup.controls[element].value });
-                                }
-                            }
-                        });
-                        this.loading = true;
-                        this.edge.updateComponentConfig(this.websocket, this.component.id, updateComponentArray).then(() => {
-                            this.component.properties.peakShavingPower = peakShavingPower.value;
-                            this.component.properties.rechargePower = rechargePower.value;
-                            this.loading = false;
-                            this.service.toast(this.translate.instant("General.changeAccepted"), "success");
-                        }).catch(reason => {
-                            peakShavingPower.setValue(this.component.properties.peakShavingPower);
-                            rechargePower.setValue(this.component.properties.rechargePower);
-                            this.loading = false;
-                            this.service.toast(this.translate.instant("General.changeFailed") + "\n" + reason.error.message, "danger");
-                            console.warn(reason);
-                        });
-                        this.formGroup.markAsPristine();
-                    } else {
-                        this.service.toast(this.translate.instant("Edge.Index.Widgets.Peakshaving.relationError"), "danger");
-                    }
-                } else {
-                    this.service.toast(this.translate.instant("General.inputNotValid"), "danger");
-                }
-            } else {
-                this.service.toast(this.translate.instant("General.insufficientRights"), "danger");
-            }
+
+        if (this.edge == null) {
+            return;
         }
+
+        if (!this.edge.roleIsAtLeast("owner")) {
+            this.service.toast(this.translate.instant("GENERAL.INSUFFICIENT_RIGHTS"), "danger");
+            return;
+        }
+
+        const peakShavingPower = this.formGroup.controls["peakShavingPower"];
+        const rechargePower = this.formGroup.controls["rechargePower"];
+
+        if (!peakShavingPower.valid || !rechargePower.valid) {
+            this.service.toast(this.translate.instant("GENERAL.INPUT_NOT_VALID"), "danger");
+            return;
+        }
+
+        if (Number(peakShavingPower.value) < Number(rechargePower.value)) {
+            this.service.toast(this.translate.instant("EDGE.INDEX.WIDGETS.PEAKSHAVING.RELATION_ERROR"), "danger");
+            return;
+        }
+
+        const updateComponentArray = Object.keys(this.formGroup.controls)
+            .filter(key => this.formGroup.controls[key].dirty)
+            .map(key => {
+                let val = this.formGroup.controls[key].value;
+                if (key === "slowChargePower") {
+                    val = val * -1;
+                }
+                return { name: key, value: val };
+            });
+
+        this.loading = true;
+
+        this.edge.updateComponentConfig(this.websocket, this.component.id, updateComponentArray)
+            .then(() => {
+                this.component.properties.peakShavingPower = peakShavingPower.value;
+                this.component.properties.rechargePower = rechargePower.value;
+                this.service.toast(this.translate.instant("GENERAL.CHANGE_ACCEPTED"), "success");
+            })
+            .catch(reason => {
+                peakShavingPower.setValue(this.component.properties.peakShavingPower);
+                rechargePower.setValue(this.component.properties.rechargePower);
+                this.service.toast(this.translate.instant("GENERAL.CHANGE_FAILED") + "\n" + reason.error.message, "danger");
+                console.warn(reason);
+            })
+            .finally(() => {
+                this.loading = false;
+                this.formGroup.markAsPristine();
+            });
     }
 }

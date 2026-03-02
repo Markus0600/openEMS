@@ -8,13 +8,16 @@ import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.types.OpenemsType;
 import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.Doc;
+import io.openems.edge.common.channel.DynamicStateChannelDoc;
 import io.openems.edge.common.channel.EnumReadChannel;
 import io.openems.edge.common.channel.IntegerDoc;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.channel.StateChannel;
+import io.openems.edge.common.channel.dynamicdoctext.ParameterProvider;
 import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
+import io.openems.edge.common.type.TextProvider;
 import io.openems.edge.goodwe.charger.GoodWeCharger;
 import io.openems.edge.goodwe.common.enums.AppModeIndex;
 import io.openems.edge.goodwe.common.enums.ArcSelfCheckStatus;
@@ -81,6 +84,11 @@ public interface GoodWe extends OpenemsComponent {
 		DSP_DCDC_FM_VERSION(Doc.of(OpenemsType.INTEGER)), //
 		DSP_MPPT_BETA_VERSION(Doc.of(OpenemsType.INTEGER)), //
 		DSP_STS_FM_VERSION(Doc.of(OpenemsType.INTEGER)), //
+		STS_VERSION(Doc.of(OpenemsType.INTEGER).onChannelChange(AbstractGoodWe::updateStsBoxEnabled)), //
+		STS_SUB_VERSION(Doc.of(OpenemsType.INTEGER).onChannelChange(AbstractGoodWe::updateStsBoxEnabled)), //
+		STS_BOX_ENABLE(Doc.of(OpenemsType.BOOLEAN) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH)), //
 
 		// Running Data
 		V_PV3(Doc.of(OpenemsType.INTEGER) //
@@ -148,6 +156,86 @@ public interface GoodWe extends OpenemsComponent {
 		TWO_S_PV6_I(Doc.of(OpenemsType.INTEGER) //
 				.unit(Unit.MILLIAMPERE)), //
 
+		/*
+		 * MPPT4
+		 */
+		MPPT4_P(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT)),
+		MPPT4_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+		TWO_S_PV7_V(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.VOLT)), //
+		TWO_S_PV7_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+		TWO_S_PV8_V(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.VOLT)), //
+		TWO_S_PV8_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+
+		/*
+		 * MPPT5
+		 */
+		MPPT5_P(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT)),
+		MPPT5_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+		TWO_S_PV9_V(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.VOLT)), //
+		TWO_S_PV9_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+		TWO_S_PV10_V(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.VOLT)), //
+		TWO_S_PV10_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+
+		/*
+		 * MPPT6
+		 */
+		MPPT6_P(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT)),
+		MPPT6_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+		TWO_S_PV11_V(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.VOLT)), //
+		TWO_S_PV11_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+		TWO_S_PV12_V(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.VOLT)), //
+		TWO_S_PV12_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+
+		/*
+		 * MPPT7
+		 */
+		MPPT7_P(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT)),
+		MPPT7_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+		TWO_S_PV13_V(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.VOLT)), //
+		TWO_S_PV13_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+		TWO_S_PV14_V(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.VOLT)), //
+		TWO_S_PV14_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+
+		/*
+		 * MPPT8
+		 */
+		MPPT8_P(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT)),
+		MPPT8_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+		TWO_S_PV15_V(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.VOLT)), //
+		TWO_S_PV15_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+		TWO_S_PV16_V(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.VOLT)), //
+		TWO_S_PV16_I(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE)), //
+
 		/**
 		 * Total Active Power Of Inverter.
 		 *
@@ -197,6 +285,7 @@ public interface GoodWe extends OpenemsComponent {
 				.unit(Unit.AMPERE)), //
 		P_BATTERY1(Doc.of(OpenemsType.INTEGER) //
 				.unit(Unit.WATT)), //
+		GOODWE_TYPE(Doc.of(GoodWeType.values())), //
 		BATTERY_MODE(Doc.of(BatteryMode.values())), //
 		SAFETY_COUNTRY(Doc.of(SafetyCountry.values())), // .
 		WORK_MODE(Doc.of(WorkMode.values())), //
@@ -331,11 +420,14 @@ public interface GoodWe extends OpenemsComponent {
 						+ "Ggf. Luftstrom durch den Kühlkörper für Normalbetrieb unzureichend (Aufstellbedingungen beachten!). "
 						+ "Ggf. Behinderung des Luftstroms, z.B. Kühlkörper wurde abgedeckt")), //
 
-		STATE_14(Doc.of(Level.WARNING) //
-				.text("Utility Phase Failure " //
-						+ "| Phasenfehler " //
-						+ "| Überprüfen Sie das Drehfeld am Wechselrichter. " //
-						+ "Ggf. Kommunikationsadapter (ET+) nicht (richtig) gesteckt")), //
+		STATE_14(DynamicStateChannelDoc.builder(Level.WARNING) //
+				.setDynamicText(//
+						TextProvider.byStatic("{0}"), //
+						ParameterProvider.byEnumChannel(GoodWeType.class, GOODWE_TYPE) //
+								.when(GoodWeType.FENECON_FHI_10_DAH,
+										TextProvider.byTranslation(GoodWe.class, "GoodWe.State14.Specific")) //
+								.defaultText(TextProvider.byTranslation(GoodWe.class, "GoodWe.State14.Default"))) //
+				.build()), //
 
 		STATE_15(Doc.of(Level.WARNING) //
 				.text("PV Over Voltage " //
@@ -668,7 +760,6 @@ public interface GoodWe extends OpenemsComponent {
 				.accessMode(AccessMode.READ_WRITE)), //
 		MODBUS_BAUDRATE(Doc.of(OpenemsType.INTEGER) //
 				.accessMode(AccessMode.READ_WRITE)), //
-		GOODWE_TYPE(Doc.of(GoodWeType.values())), //
 		FACTORY_SETTING(Doc.of(OpenemsType.INTEGER) //
 				.accessMode(AccessMode.WRITE_ONLY)), //
 		CLEAR_DATA(Doc.of(OpenemsType.INTEGER) //
@@ -1165,6 +1256,12 @@ public interface GoodWe extends OpenemsComponent {
 		// Fixed Power Factor
 		FIXED_POWER_FACTOR(Doc.of(FixedPowerFactor.values()) //
 				.accessMode(AccessMode.READ_WRITE)), //
+
+		// Separate Register to enable Fixed Power Factor used for ET50 (1547-1)
+		ENABLE_FIXED_POWER_FACTOR_V2(Doc.of(EnableCurve.values()) //
+				.accessMode(AccessMode.READ_WRITE)), //
+		FIXED_POWER_FACTOR_V2(Doc.of(FixedPowerFactor.values()) //
+				.accessMode(AccessMode.READ_WRITE)), //
 		FIXED_REACTIVE_POWER(Doc.of(OpenemsType.INTEGER) //
 				.accessMode(AccessMode.READ_WRITE)), //
 		FIXED_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER) //
@@ -1345,6 +1442,12 @@ public interface GoodWe extends OpenemsComponent {
 		FEED_POWER_PARA_SET(Doc.of(OpenemsType.INTEGER) //
 				.unit(Unit.WATT) //
 				.accessMode(AccessMode.READ_WRITE)), //
+		EXTENDED_FEED_POWER_ENABLE(Doc.of(OpenemsType.BOOLEAN) //
+				.accessMode(AccessMode.READ_WRITE)), //
+		EXTENDED_FEED_POWER_PARA_SET(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT) //
+				.accessMode(AccessMode.READ_WRITE)), //
+
 		/**
 		 * Enable block used for multiple remote functions.
 		 * 

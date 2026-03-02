@@ -10,34 +10,34 @@ import { ProductionMeterChartDetailsComponent } from "./details/chart/production
 import { SumChartDetailsComponent } from "./details/chart/sum";
 import { DetailsOverviewComponent } from "./details/details.overview";
 import { FlatComponent } from "./flat/flat";
-import { OverviewComponent } from "./overview/overview";
+import { CommonProductionOverviewComponent } from "./overview/overview";
 
 @NgModule({
-  imports: [
-    BrowserModule,
-    SharedModule,
-    FooterNavigationModule,
-    CurrentVoltageModule,
-  ],
-  declarations: [
-    FlatComponent,
-    OverviewComponent,
-    TotalChartComponent,
+    imports: [
+        BrowserModule,
+        SharedModule,
+        FooterNavigationModule,
+        CurrentVoltageModule,
+    ],
+    declarations: [
+        FlatComponent,
+        CommonProductionOverviewComponent,
+        TotalChartComponent,
 
-    ChargerChartDetailsComponent,
-    DetailsOverviewComponent,
-    ProductionMeterChartDetailsComponent,
-    SumChartDetailsComponent,
-  ],
-  exports: [
-    FlatComponent,
-    OverviewComponent,
-    TotalChartComponent,
+        ChargerChartDetailsComponent,
+        DetailsOverviewComponent,
+        ProductionMeterChartDetailsComponent,
+        SumChartDetailsComponent,
+    ],
+    exports: [
+        FlatComponent,
+        CommonProductionOverviewComponent,
+        TotalChartComponent,
 
-    ChargerChartDetailsComponent,
-    DetailsOverviewComponent,
-    ProductionMeterChartDetailsComponent,
-    SumChartDetailsComponent,
-  ],
+        ChargerChartDetailsComponent,
+        DetailsOverviewComponent,
+        ProductionMeterChartDetailsComponent,
+        SumChartDetailsComponent,
+    ],
 })
 export class Common_Production { }

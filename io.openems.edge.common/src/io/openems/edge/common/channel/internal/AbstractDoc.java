@@ -1,8 +1,6 @@
 package io.openems.edge.common.channel.internal;
 
 import java.util.List;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -22,6 +20,7 @@ import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.WriteChannel;
 import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
+import io.openems.edge.common.type.TextProvider;
 
 /**
  * Provides static meta information for a {@link Channel} using Builder pattern.
@@ -30,7 +29,7 @@ public abstract class AbstractDoc<T> implements Doc {
 
 	private final OpenemsType type;
 
-	private Function<Language, String> getTextFunction;
+	protected Function<Language, String> getTextFunction;
 
 	protected AbstractDoc(OpenemsType type) {
 		this.type = type;
@@ -147,33 +146,9 @@ public abstract class AbstractDoc<T> implements Doc {
 
 	@Override
 	public AbstractDoc<T> translationKey(Class<?> clazz, String channelKey) {
-		this.getTextFunction = lang -> {
-			var bundle = AbstractDoc.getResourceBundle(lang, clazz);
-			if (bundle != null && bundle.containsKey(channelKey)) {
-				var textTranslated = bundle.getString(channelKey);
-				return textTranslated;
-			}
-			if (lang != Language.EN) {
-				// TODO: Use Language.DEFAULT for default language
-				bundle = AbstractDoc.getResourceBundle(Language.EN, clazz);
-				if (bundle != null && bundle.containsKey(channelKey)) {
-					var textTranslated = bundle.getString(channelKey);
-					return textTranslated;
-				}
-			}
-
-			return channelKey;
-		};
+		var textProvider = TextProvider.byTranslation(clazz, channelKey);
+		this.getTextFunction = textProvider::getText;
 		return this;
-	}
-
-	private static ResourceBundle getResourceBundle(Language lang, Class<?> clazz) {
-		try {
-			return ResourceBundle.getBundle(clazz.getPackageName() + ".translation", lang.getLocal(),
-					clazz.getModule());
-		} catch (MissingResourceException e) {
-			return null;
-		}
 	}
 
 	@Override
