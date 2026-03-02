@@ -461,6 +461,7 @@ public class SensataBmsImpl extends AbstractOpenemsModbusComponent
 				if(relaySequence[i].value().isDefined() &&
 						relaySequence[i].value().get() != null &&
 						relaySequence[i].value().get() > 0 &&
+						relaySequence[i].value().get() <= 3 &&
 						dVoltages[i].value().isDefined() &&
 						dVoltages[i].value().get() != null ) {
 					dSum += dVoltages[i].value().get();

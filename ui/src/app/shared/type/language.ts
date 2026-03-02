@@ -68,7 +68,7 @@ export class Language {
 
     public static getByBrowserLang(browserLang: string): Language | null {
         switch (browserLang) {
-            case "de": return Language.DE;
+            // case "de": return Language.DE;
             case "en":
             case "en-US":
                 return Language.EN;
@@ -77,7 +77,7 @@ export class Language {
             case "cs": return Language.CS;
             case "fr": return Language.FR;
             case "ja": return Language.JA;
-            default: return null;
+            default: return Language.EN;
         }
     }
 
