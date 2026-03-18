@@ -6,8 +6,8 @@
 
 -runproperties:\
 	org.osgi.service.http.port=8080,\
-	felix.cm.dir=d:/Projekte/B.010104_MP93/Energiespeicher/software/openems/config,\
-	openems.data.dir=d:/Projekte/B.010104_MP93/Energiespeicher/software/openems/data,\
+	felix.cm.dir=c:/openems/config,\
+	openems.data.dir=c:/openems/data,\
 	org.apache.felix.eventadmin.Timeout=0,\
 	org.ops4j.pax.logging.DefaultServiceLog.level=WARN
 
@@ -47,7 +47,6 @@
 	bnd.identity;id='io.openems.edge.battery.fenecon.home',\
 	bnd.identity;id='io.openems.edge.battery.pylontech',\
 	bnd.identity;id='io.openems.edge.battery.soltaro',\
-	bnd.identity;id='io.openems.edge.battery.sensatabms',\
 	bnd.identity;id='io.openems.edge.batteryinverter.kaco.blueplanetgridsave',\
 	bnd.identity;id='io.openems.edge.batteryinverter.refu88k',\
 	bnd.identity;id='io.openems.edge.batteryinverter.sinexcel',\
@@ -55,15 +54,12 @@
 	bnd.identity;id='io.openems.edge.bridge.http',\
 	bnd.identity;id='io.openems.edge.bridge.mbus',\
 	bnd.identity;id='io.openems.edge.bridge.modbus',\
-<<<<<<< HEAD
-=======
 	bnd.identity;id='io.openems.edge.bridge.mqtt',\
-	bnd.identity;id='io.openems.edge.bridge.onewire',\
->>>>>>> upstream/develop
 	bnd.identity;id='io.openems.edge.common',\
 	bnd.identity;id='io.openems.edge.controller.api.backend',\
 	bnd.identity;id='io.openems.edge.controller.api.common',\
 	bnd.identity;id='io.openems.edge.controller.api.modbus',\
+	bnd.identity;id='io.openems.edge.controller.api.mqtt',\
 	bnd.identity;id='io.openems.edge.controller.api.rest',\
 	bnd.identity;id='io.openems.edge.controller.api.websocket',\
 	bnd.identity;id='io.openems.edge.controller.asymmetric.balancingcosphi',\
@@ -178,15 +174,11 @@
 	bnd.identity;id='io.openems.edge.meter.plexlog',\
 	bnd.identity;id='io.openems.edge.meter.pqplus',\
 	bnd.identity;id='io.openems.edge.meter.schneider.acti9.smartlink',\
-	bnd.identity;id='io.openems.edge.meter.schneider.pm5330',\
-	bnd.identity;id='io.openems.edge.meter.schneider.em6400ng',\
-	bnd.identity;id='io.openems.edge.battery.sensatabms'
 	bnd.identity;id='io.openems.edge.meter.siemens',\
 	bnd.identity;id='io.openems.edge.meter.socomec',\
 	bnd.identity;id='io.openems.edge.meter.virtual',\
 	bnd.identity;id='io.openems.edge.meter.weidmueller',\
 	bnd.identity;id='io.openems.edge.meter.ziehl',\
-	bnd.identity;id='io.openems.edge.onewire.thermometer',\
 	bnd.identity;id='io.openems.edge.predictor.lstm',\
 	bnd.identity;id='io.openems.edge.predictor.persistencemodel',\
 	bnd.identity;id='io.openems.edge.predictor.production.linearmodel',\
@@ -219,19 +211,16 @@
 	bnd.identity;id='io.openems.edge.timeofusetariff.rabotcharge',\
 	bnd.identity;id='io.openems.edge.timeofusetariff.swisspower',\
 	bnd.identity;id='io.openems.edge.timeofusetariff.tibber',\
-<<<<<<< HEAD
-	bnd.identity;id='io.openems.edge.battery.sensatabms'
--runbundles: \
-	Java-WebSocket;version='[1.5.4,1.5.5)',\
-=======
 	bnd.identity;id='io.openems.edge.victron',\
 	bnd.identity;id='io.openems.edge.weather.openmeteo',\
-
+	bnd.identity;id='io.openems.edge.battery.sensatabms',\
+	bnd.identity;id='io.openems.edge.meter.schneider.em6400ng',\
+	bnd.identity;id='io.openems.edge.meter.schneider.pm5330',\
+	bnd.identity;id='io.openems.edge.thermometer.api',\
 -runbundles: \
 	bcpkix;version='[1.83.0,1.83.1)',\
 	bcprov;version='[1.83.0,1.83.1)',\
 	bcutil;version='[1.83.0,1.83.1)',\
->>>>>>> upstream/develop
 	com.fasterxml.aalto-xml;version='[1.3.3,1.3.4)',\
 	com.fazecast.jSerialComm;version='[2.11.4,2.11.5)',\
 	com.google.gson;version='[2.13.2,2.13.3)',\
@@ -263,12 +252,12 @@
 	io.openems.edge.bridge.mbus;version=snapshot,\
 	io.openems.edge.bridge.modbus;version=snapshot,\
 	io.openems.edge.bridge.mqtt;version=snapshot,\
-	io.openems.edge.bridge.onewire;version=snapshot,\
 	io.openems.edge.common;version=snapshot,\
 	io.openems.edge.controller.api;version=snapshot,\
 	io.openems.edge.controller.api.backend;version=snapshot,\
 	io.openems.edge.controller.api.common;version=snapshot,\
 	io.openems.edge.controller.api.modbus;version=snapshot,\
+	io.openems.edge.controller.api.mqtt;version=snapshot,\
 	io.openems.edge.controller.api.rest;version=snapshot,\
 	io.openems.edge.controller.api.websocket;version=snapshot,\
 	io.openems.edge.controller.asymmetric.balancingcosphi;version=snapshot,\
@@ -390,14 +379,11 @@
 	io.openems.edge.meter.plexlog;version=snapshot,\
 	io.openems.edge.meter.pqplus;version=snapshot,\
 	io.openems.edge.meter.schneider.acti9.smartlink;version=snapshot,\
-	io.openems.edge.predictor.api;version=snapshot,\
-	io.openems.edge.pvinverter.api;version=snapshot,\
 	io.openems.edge.meter.siemens;version=snapshot,\
 	io.openems.edge.meter.socomec;version=snapshot,\
 	io.openems.edge.meter.virtual;version=snapshot,\
 	io.openems.edge.meter.weidmueller;version=snapshot,\
 	io.openems.edge.meter.ziehl;version=snapshot,\
-	io.openems.edge.onewire.thermometer;version=snapshot,\
 	io.openems.edge.predictor.api;version=snapshot,\
 	io.openems.edge.predictor.lstm;version=snapshot,\
 	io.openems.edge.predictor.persistencemodel;version=snapshot,\
@@ -411,6 +397,7 @@
 	io.openems.edge.pvinverter.solarlog;version=snapshot,\
 	io.openems.edge.scheduler.allalphabetically;version=snapshot,\
 	io.openems.edge.scheduler.api;version=snapshot,\
+	io.openems.edge.scheduler.daily;version=snapshot,\
 	io.openems.edge.scheduler.fixedorder;version=snapshot,\
 	io.openems.edge.scheduler.jscalendar;version=snapshot,\
 	io.openems.edge.simulator;version=snapshot,\
@@ -418,8 +405,8 @@
 	io.openems.edge.solaredge;version=snapshot,\
 	io.openems.edge.system.fenecon;version=snapshot,\
 	io.openems.edge.tesla.powerwall2;version=snapshot,\
-	io.openems.edge.thermometer.api;version=snapshot,\
 	io.openems.edge.timedata.api;version=snapshot,\
+	io.openems.edge.timedata.influxdb;version=snapshot,\
 	io.openems.edge.timedata.rrd4j;version=snapshot,\
 	io.openems.edge.timeofusetariff.ancillarycosts;version=snapshot,\
 	io.openems.edge.timeofusetariff.api;version=snapshot,\
@@ -443,15 +430,23 @@
 	io.openems.wrapper.Java-WebSocket;version=snapshot,\
 	io.openems.wrapper.eu.chargetime.ocpp;version=snapshot,\
 	io.openems.wrapper.fastexcel;version=snapshot,\
+	io.openems.wrapper.gson;version=snapshot,\
+	io.openems.wrapper.influxdb-client-core;version=snapshot,\
+	io.openems.wrapper.influxdb-client-java;version=snapshot,\
+	io.openems.wrapper.influxdb-client-utils;version=snapshot,\
+	io.openems.wrapper.influxdb-flux-dsl;version=snapshot,\
+	io.openems.wrapper.io.reactivex.rxjava3.rxjava;version=snapshot,\
 	io.openems.wrapper.javax.activation;version=snapshot,\
 	io.openems.wrapper.jenetics;version=snapshot,\
-	io.openems.wrapper.okhttp;version=snapshot,\
 	io.openems.wrapper.kotlinx-coroutines-core-jvm;version=snapshot,\
 	io.openems.wrapper.olcut;version=snapshot,\
 	io.openems.wrapper.opczip;version=snapshot,\
+	io.openems.wrapper.paho-mqttv5;version=snapshot,\
+	io.openems.wrapper.retrofit-adapter-rxjava3;version=snapshot,\
+	io.openems.wrapper.retrofit-converter-gson;version=snapshot,\
+	io.openems.wrapper.retrofit-converter-scalars;version=snapshot,\
+	io.openems.wrapper.retrofit2;version=snapshot,\
 	io.openems.wrapper.sdnotify;version=snapshot,\
-	javax.jmdns;version='[3.4.1,3.4.2)',\
-	org.apache.commons.commons-compress;version='[1.27.1,1.27.2)',\
 	io.openems.wrapper.tribuo;version=snapshot,\
 	io.reactivex.rxjava3.rxjava;version='[3.1.12,3.1.13)',\
 	javax.jmdns;version='[3.6.3,3.6.4)',\
@@ -480,8 +475,6 @@
 	org.eclipse.jetty.http;version='[9.4.28,9.4.29)',\
 	org.eclipse.jetty.io;version='[9.4.28,9.4.29)',\
 	org.eclipse.jetty.util;version='[9.4.28,9.4.29)',\
-	org.jetbrains.kotlin.osgi-bundle;version='[2.1.21,2.1.22)',\
-	org.jsoup;version='[1.20.1,1.20.2)',\
 	org.eclipse.paho.client.mqttv3;version='[1.2.5,1.2.6)',\
 	org.eclipse.paho.mqttv5.client;version='[1.2.5,1.2.6)',\
 	org.jetbrains.kotlin.osgi-bundle;version='[2.3.10,2.3.11)',\
@@ -494,14 +487,13 @@
 	org.osgi.service.component;version='[1.5.1,1.5.2)',\
 	org.osgi.util.function;version='[1.2.0,1.2.1)',\
 	org.osgi.util.promise;version='[1.3.0,1.3.1)',\
-	org.owasp.encoder;version='[1.3.1,1.3.2)',\
-	rrd4j;version='[3.9.0,3.9.1)',\
-	stax2-api;version='[4.2.2,4.2.3)',\
-	io.openems.edge.meter.schneider.em6400ng;version=snapshot,\
-	io.openems.edge.meter.schneider.pm5330;version=snapshot,\
-	io.openems.edge.battery.sensatabms;version=snapshot
--resolve: manual
 	org.owasp.encoder;version='[1.4.0,1.4.1)',\
 	reactive-streams;version='[1.0.4,1.0.5)',\
 	rrd4j;version='[3.10.0,3.10.1)',\
-	stax2-api;version='[4.2.2,4.2.3)'
+	stax2-api;version='[4.2.2,4.2.3)',\
+	io.openems.edge.thermometer.api;version=snapshot,\
+	io.openems.edge.battery.sensatabms;version=snapshot,\
+	io.openems.edge.meter.schneider.em6400ng;version=snapshot,\
+	io.openems.edge.meter.schneider.pm5330;version=snapshot,\
+-resolve: manual
+-resolve: manual

@@ -26,7 +26,7 @@
     "@ionic/core": "^8.7.18",
     "@ngx-formly/core": "^7.1.0",
     "@ngx-formly/ionic": "^7.1.0",
-    "@ngx-formly/schematics": "^7.1.0",
+    "@ngx-formly/schematics": "^5.12.7",
     "@ngx-translate/core": "^17.0.0",
     "@nodro7/angular-mydatepicker": "^20.0.0",
     "capacitor-blob-writer": "^1.1.20",

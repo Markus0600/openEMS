@@ -52,11 +52,12 @@ public class GoStoppedHandler extends StateHandler<State, Context> {
 		}
 
 		// Check if relay has reached IDLE state - transition complete
-		if (context.getRelaySequence1() == ParallelPack.IDLE.getValue()
-				&& context.getRelaySequence2() == ParallelPack.IDLE.getValue()
-				&& context.getRelaySequence3() == ParallelPack.IDLE.getValue()
-				&& context.getRelaySequence4() == ParallelPack.IDLE.getValue()
-				&& context.getRelaySequence5() == ParallelPack.IDLE.getValue()) {
+		// 1 = inactive (idle finished) 0 = idle
+		if (context.getRelaySequence1() <= 1
+				&& context.getRelaySequence2() <= 1
+				&& context.getRelaySequence3() <= 1
+				&& context.getRelaySequence4() <= 1
+				&& context.getRelaySequence5() <= 1) {
 			this.log.info("Relay reached IDLE state - shutdown complete, transitioning to UNDEFINED");
 			return State.UNDEFINED; // Safe resting state
 		}

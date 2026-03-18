@@ -46,11 +46,8 @@ export enum WidgetFactory {
     "Controller.TimeslotPeakshaving",
     "Evcs.Cluster.PeakShaving",
     "Evcs.Cluster.SelfConsumption",
-<<<<<<< HEAD
     "SensataBMS",
-=======
     "Weather.OpenMeteo",
->>>>>>> upstream/develop
 }
 
 export type Icon = {
